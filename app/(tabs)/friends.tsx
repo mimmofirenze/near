@@ -5,19 +5,18 @@ import type { ReactNode } from "react";
 import {
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
-  useColorScheme,
   View,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { router, useFocusEffect } from "expo-router";
 
-import { Colors } from "../../constants/theme";
 import { styles } from "../../styles/friendsStyles";
 
 import {
@@ -32,6 +31,8 @@ import {
 } from "../../utils/friends";
 
 import { countryCodeToFlag } from "../../utils/countries";
+
+import { useAppTheme } from "../../contexts/themeContext";
 
 type UserProfile = {
   id: string;
@@ -54,8 +55,8 @@ type FriendItem = {
 
 export default function FriendsScreen() {
 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
+  const { theme, colorScheme } =
+  useAppTheme();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -308,6 +309,17 @@ export default function FriendsScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          <Text
+            style={[
+              styles.title,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            Friends
+          </Text>
+
           <View style={styles.searchRow}>
             <View style={styles.searchContainer}>
               <Ionicons

@@ -3,7 +3,6 @@ import {
   Pressable,
   Text,
   View,
-  useColorScheme,
   ScrollView,
 } from "react-native";
 
@@ -12,13 +11,14 @@ import { useFocusEffect, router } from "expo-router";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "../../constants/theme";
 import { styles } from "../../styles/profileStyles";
 import {
   getCurrentProfile,
   getVisitedCountries,
 } from "../../utils/profile";
 import { countryCodeToFlag } from "../../utils/countries";
+
+import { useAppTheme } from "../../contexts/themeContext";
 
 type Profile = {
   id: string;
@@ -33,8 +33,8 @@ type Profile = {
 
 export default function ProfileScreen() {
 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
+  const { theme, colorScheme } =
+  useAppTheme();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -106,10 +106,21 @@ export default function ProfileScreen() {
       style={[styles.screen, { backgroundColor: theme.background }]}
       edges={["top"]}
     >
+
       <ScrollView
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.content}>
+        <Text
+          style={[
+            styles.title,
+            {
+              color: theme.text,
+            },
+          ]}
+        >
+          Profile
+        </Text>
         <View style={styles.topBar}>
           <Pressable
             style={({ pressed }) => [

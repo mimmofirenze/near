@@ -1,7 +1,6 @@
 import { View, 
   Image, 
   Text, 
-  useColorScheme, 
   TextInput,
   Pressable,
   Keyboard, 
@@ -11,7 +10,7 @@ import { View,
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles/loginStyles";
-import { Colors, Logos, AppleLogos } from "../constants/theme";
+import { Logos, AppleLogos } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
@@ -21,11 +20,14 @@ import { validateEmail, validatePassword, } from "../utils/validation";
 import { supabase } from "../lib/supabase";
 import { signIn } from "../utils/auth";
 
+import { useAppTheme } from "../contexts/themeContext";
+
 
 export default function LoginScreen() {
 
-const colorScheme = useColorScheme();
-const theme = Colors[colorScheme ?? "light"];
+const { theme, colorScheme } =
+  useAppTheme();
+
 const logo = Logos[colorScheme ?? "light"];
 const appleLogo = AppleLogos[colorScheme ?? 'light']
 

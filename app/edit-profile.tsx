@@ -3,7 +3,6 @@ import {
   Text,
   TextInput,
   View,
-  useColorScheme,
   Image,
   ScrollView,
 } from "react-native";
@@ -17,7 +16,6 @@ import CountryPicker, {
   CountryCode,
 } from "react-native-country-picker-modal";
 
-import { Colors } from "../constants/theme";
 import {
   getCurrentProfile,
   updateCurrentProfile,
@@ -26,6 +24,10 @@ import {
   addVisitedCountry,
   removeVisitedCountry,
 } from "../utils/profile";
+
+import { useAppTheme } from "../contexts/themeContext";
+
+import { Ionicons } from "@expo/vector-icons";
 
 function countryCodeToFlag(countryCode: string) {
   if (countryCode.length !== 2) {
@@ -43,8 +45,8 @@ function countryCodeToFlag(countryCode: string) {
 
 export default function EditProfileScreen() {
 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
+  const { theme, colorScheme } =
+  useAppTheme();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -289,17 +291,47 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={{ gap: 16 }}>
-          <Text
+          <View
             style={{
-              color: theme.text,
-              fontSize: 28,
-              textAlign: "center",
+              position: "relative",
+              justifyContent: "center",
+              alignItems: "center",
               marginBottom: 20,
-              fontFamily: "alanRegular",
+              minHeight: 40,
             }}
           >
-            Edit profile
-          </Text>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 2,
+                width: 36,
+                height: 36,
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2,
+              }}
+            >
+              <Ionicons
+                name="arrow-back-outline"
+                size={30}
+                color={theme.text}
+              />
+            </Pressable>
+
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 28,
+                textAlign: "center",
+                fontFamily: "alanRegular",
+              }}
+            >
+              Edit profile
+            </Text>
+          </View>
 
           <Pressable
             onPress={handleAvatarPress}

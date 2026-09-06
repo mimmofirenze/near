@@ -121,17 +121,6 @@ export async function updateCurrentUserLocation() {
 
 export async function startBackgroundLocationTracking() {
   try {
-    const available =
-      await Location.isBackgroundLocationAvailableAsync();
-
-    if (!available) {
-      return {
-        started: false,
-        error: new Error(
-          "Background location is not available on this device."
-        ),
-      };
-    }
 
     const foregroundPermission =
       await Location.getForegroundPermissionsAsync();

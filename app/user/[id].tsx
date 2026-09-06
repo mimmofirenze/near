@@ -3,7 +3,6 @@ import {
   ScrollView,
   Text,
   View,
-  useColorScheme,
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -15,7 +14,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Colors } from "../../constants/theme";
 import { styles } from "../../styles/profileStyles";
 
 import {
@@ -24,6 +22,8 @@ import {
 } from "../../utils/profile";
 
 import { countryCodeToFlag } from "../../utils/countries";
+
+import { useAppTheme } from "../../contexts/themeContext";
 
 type Profile = {
   id: string;
@@ -41,8 +41,8 @@ export default function UserProfileScreen() {
     id: string;
   }>();
 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
+  const { theme, colorScheme } =
+    useAppTheme();
 
   const defaultAvatar =
   colorScheme === "dark"

@@ -7,11 +7,17 @@ export const styles = StyleSheet.create({
   },
 
   content: {
-    flexGrow: 1,
     alignItems: "center",
-    paddingTop: 25,
-    paddingHorizontal: 30,
-    paddingBottom: 35,
+    paddingHorizontal: 22,
+    paddingBottom: 40,
+  },
+
+  title: {
+    fontSize: 30,
+    fontFamily: "alanRegular",
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 32,
   },
 
   topBar: {

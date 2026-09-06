@@ -28,7 +28,7 @@ export const Colors = {
     tabIconSelected: tintColorLight,
     input: '#D9D9D9',
     logo: '',
-    navBar: '#FFF9E8'
+    navBar: '#fffbf0'
   },
   dark: {
     text: '#ffffff',

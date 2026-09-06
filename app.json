@@ -29,6 +29,11 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBtCq_-FJ9B2xIslIRGSduhunvfj2OJg7g"
+        }
+      },
       "package": "com.mimmofirenze.near"
     },
 

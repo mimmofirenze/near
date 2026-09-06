@@ -3,7 +3,6 @@ import {
   Pressable,
   Text,
   TextInput,
-  useColorScheme,
   View,
   Keyboard, 
   TouchableWithoutFeedback
@@ -14,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
-import { Colors, AppleLogos } from "../constants/theme";
+import { AppleLogos } from "../constants/theme";
 import { styles } from "../styles/registerStyles";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +21,13 @@ import { validateEmail, validateFirstName, validatePassword, } from "../utils/va
 
 import { signUp } from "../utils/auth";
 
-export default function RegisterScreen() {
-  const colorScheme = useColorScheme();
+import { useAppTheme } from "../contexts/themeContext";
 
-  const theme = Colors[colorScheme ?? "light"];
+export default function RegisterScreen() {
+
+  const { theme, colorScheme } =
+  useAppTheme();
+
   const appleLogo = AppleLogos[colorScheme ?? 'light']
 
   const [showPassword, setShowPassword] = useState(false); //roba dell'occhio

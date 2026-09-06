@@ -6,15 +6,21 @@ export const styles = StyleSheet.create({
   },
 
   content: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 35,
-  },
+  paddingHorizontal: 22,
+  paddingBottom: 40,
+},
+
+  title: {
+  fontSize: 30,
+  fontFamily: "alanRegular",
+  textAlign: "center",
+  marginTop: 10,
+},
 
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 42,
+    marginBottom: 12,
     marginTop: 42,
   },
 
@@ -24,7 +30,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 11,
-    backgroundColor: "#DEDEDE",
+    backgroundColor: "#ebeae1",
     paddingHorizontal: 11,
   },
 
@@ -53,21 +59,13 @@ export const styles = StyleSheet.create({
     minHeight: 69,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#DEDEDE",
-    borderRadius: 11,
+    backgroundColor: "#FFFCF3",
     marginBottom: 14,
     paddingHorizontal: 9,
     paddingVertical: 6,
-
-    elevation: 4,
-
-    shadowColor: "#000000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderRadius: 18,
+    overflow: "hidden",
   },
 
   avatar: {
@@ -105,18 +103,22 @@ export const styles = StyleSheet.create({
   },
 
   viewButton: {
-    minWidth: 58,
-    height: 29,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 15,
-    backgroundColor: "#FFFCF4",
+    backgroundColor: "transparent",
     paddingHorizontal: 12,
   },
 
   viewButtonText: {
     fontSize: 15,
     color: "#111111",
+    fontFamily: "alanRegular",
+    borderWidth: 1,
+    borderRadius: 18,
+    overflow: "hidden",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
   },
 
   addButton: {

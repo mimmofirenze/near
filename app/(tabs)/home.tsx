@@ -7,7 +7,6 @@ import {
   Pressable,
   Text,
   View,
-  useColorScheme,
 } from "react-native";
 
 import ClusteredMapView from "react-native-map-clustering";
@@ -21,8 +20,6 @@ import MapView, {
 import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from "../../constants/theme";
-
 import {
   updateCurrentUserLocation,
   getFriendLocations,
@@ -30,6 +27,8 @@ import {
   startBackgroundLocationTracking,
   type FriendLocation,
 } from "../../utils/location";
+
+import { useAppTheme } from "../../contexts/themeContext";
 
 const NEARBY_RADIUS_METERS = 500;
 
@@ -107,8 +106,8 @@ function formatDistance(distanceMetres: number) {
 
 export default function Home() {
 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? "light"];
+  const { theme, colorScheme } =
+  useAppTheme();
 
   const defaultAvatar =
   colorScheme === "dark"
