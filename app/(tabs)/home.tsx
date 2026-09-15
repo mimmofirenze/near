@@ -17,18 +17,30 @@ import MapView, {
   Region,
 } from "react-native-maps";
 
-import { router, useFocusEffect } from "expo-router";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+
+import * as Location from "expo-location";
+
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useAppTheme } from "../../contexts/themeContext";
+
+import { getNearSettings } from "../../utils/settings";
 
 import {
   updateCurrentUserLocation,
   getFriendLocations,
   subscribeToFriendLocationUpdates,
   startBackgroundLocationTracking,
+  stopBackgroundLocationTracking,
+  watchCurrentUserLocation,
   type FriendLocation,
 } from "../../utils/location";
 
-import { useAppTheme } from "../../contexts/themeContext";
 
 const NEARBY_RADIUS_METERS = 500;
 
@@ -108,6 +120,10 @@ export default function Home() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { friendId } = useLocalSearchParams<{
+  friendId?: string;
+}>();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -189,14 +205,48 @@ export default function Home() {
   }, [loadFriendLocations]);
 
   useEffect(() => {
-    const enableBackgroundTracking = async () => {
+  let subscription:
+    | Location.LocationSubscription
+    | null = null;
+
+  const startForegroundTracking = async () => {
+    const result =
+      await watchCurrentUserLocation(
+        (location) => {
+          setCoordinates({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+        }
+      );
+
+    subscription = result.subscription;
+
+    if (result.error) {
+      console.log(
+        "Foreground location error:",
+        result.error.message
+      );
+    }
+  };
+
+  startForegroundTracking();
+
+  return () => {
+    subscription?.remove();
+  };
+}, []);
+
+  useEffect(() => {
+  const syncBackgroundTracking = async () => {
+    const settings = await getNearSettings();
+
+    if (
+      settings.shareLocation &&
+      settings.backgroundLocation
+    ) {
       const { started, error } =
         await startBackgroundLocationTracking();
-
-      console.log(
-        "Background tracking started:",
-        started
-      );
 
       if (error) {
         console.log(
@@ -204,10 +254,18 @@ export default function Home() {
           error.message
         );
       }
-    };
 
-    enableBackgroundTracking();
-  }, []);
+      console.log(
+        "Background tracking started:",
+        started
+      );
+    } else {
+      await stopBackgroundLocationTracking();
+    }
+  };
+
+  syncBackgroundTracking();
+}, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -289,6 +347,36 @@ export default function Home() {
       400
     );
   };
+
+  useEffect(() => {
+  if (!friendId || friendLocations.length === 0) {
+    return;
+  }
+
+  const friend = friendLocations.find(
+    (item) => item.user_id === friendId
+  );
+
+  if (!friend) {
+    return;
+  }
+
+  const timeout = setTimeout(() => {
+    setSelectedFriend(friend);
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: friend.latitude,
+        longitude: friend.longitude,
+        latitudeDelta: 0.03,
+        longitudeDelta: 0.03,
+      },
+      400
+    );
+  }, 300);
+
+  return () => clearTimeout(timeout);
+}, [friendId, friendLocations]);
 
   if (loadingLocation && !coordinates) {
     return (
@@ -641,7 +729,10 @@ export default function Home() {
             Last update:{" "}
             {new Date(
               selectedFriend.updated_at
-            ).toLocaleTimeString([], {
+            ).toLocaleString([], {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
               hour: "2-digit",
               minute: "2-digit",
             })}

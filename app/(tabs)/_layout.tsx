@@ -16,6 +16,13 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarShowLabel: false,
 
+        sceneStyle: {
+          backgroundColor: theme.background,
+        },
+
+        tabBarActiveTintColor: theme.tabIconSelected,
+        tabBarInactiveTintColor: theme.tabIconDefault,
+
         tabBarStyle: {
           backgroundColor: theme.navBar,
           height: 70 + insets.bottom,

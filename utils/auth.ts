@@ -1,4 +1,6 @@
 import { supabase } from "../lib/supabase";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 
 export async function signUp(
   firstName: string,
@@ -21,6 +23,192 @@ export async function signIn(email: string, password: string) {
     email: email.trim().toLowerCase(),
     password,
   });
+}
+
+export async function signInWithGoogle() {
+  try {
+    const redirectTo = Linking.createURL("auth/callback");
+
+    const { data, error } =
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          queryParams: {
+            prompt: "select_account",
+          },
+        },
+    });
+
+    if (error) {
+      return { error };
+    }
+
+    if (!data.url) {
+      return {
+        error: new Error(
+          "Google login URL was not returned."
+        ),
+      };
+    }
+
+    const result =
+      await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectTo
+      );
+
+    if (result.type !== "success") {
+      return {
+        error: new Error(
+          "Google login was cancelled."
+        ),
+      };
+    }
+
+    console.log("OAuth result URL:", result.url);
+
+    // Supabase normally returns tokens in the URL hash:
+    // near://auth/callback#access_token=...&refresh_token=...
+    const parts = result.url.split("#");
+
+    const params = new URLSearchParams(
+      parts[1] ?? parts[0].split("?")[1] ?? ""
+    );
+
+    const accessToken =
+      params.get("access_token");
+
+    const refreshToken =
+      params.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      return {
+        error: new Error(
+          "Google login did not return authentication tokens."
+        ),
+      };
+    }
+
+    const {
+      data: sessionData,
+      error: sessionError,
+    } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (sessionError) {
+      return {
+        error: sessionError,
+      };
+    }
+
+    return {
+      data: sessionData,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Google OAuth error:", error);
+
+    return {
+      error:
+        error instanceof Error
+          ? error
+          : new Error("Google login failed."),
+    };
+  }
+}
+
+export async function signInWithFacebook() {
+  try {
+    const redirectTo = Linking.createURL("auth/callback");
+
+    const { data, error } =
+      await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          queryParams: {
+            auth_type: "reauthenticate",
+          },
+        },
+      });
+
+    if (error) {
+      return { error };
+    }
+
+    if (!data.url) {
+      return {
+        error: new Error(
+          "Facebook login URL was not returned."
+        ),
+      };
+    }
+
+    const result =
+      await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectTo
+      );
+
+    if (result.type !== "success") {
+      return {
+        error: new Error(
+          "Facebook login was cancelled."
+        ),
+      };
+    }
+
+    const parts = result.url.split("#");
+
+    const params = new URLSearchParams(
+      parts[1] ?? parts[0].split("?")[1] ?? ""
+    );
+
+    const accessToken =
+      params.get("access_token");
+
+    const refreshToken =
+      params.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      return {
+        error: new Error(
+          "Facebook login did not return authentication tokens."
+        ),
+      };
+    }
+
+    const {
+      data: sessionData,
+      error: sessionError,
+    } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (sessionError) {
+      return { error: sessionError };
+    }
+
+    return {
+      data: sessionData,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Facebook OAuth error:", error);
+
+    return {
+      error:
+        error instanceof Error
+          ? error
+          : new Error("Facebook login failed."),
+    };
+  }
 }
 
 export async function signOut() {

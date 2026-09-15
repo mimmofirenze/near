@@ -149,9 +149,8 @@ continueButtonActive: {
   socialButtonText: {
     flex: 1,
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "alanRegular",
-    marginRight: 24,
   },
 
   loginButton: {

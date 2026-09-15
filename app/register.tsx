@@ -13,13 +13,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
-import { AppleLogos } from "../constants/theme";
 import { styles } from "../styles/registerStyles";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { validateEmail, validateFirstName, validatePassword, } from "../utils/validation";
 
-import { signUp } from "../utils/auth";
+import {
+  signUp,
+  signInWithGoogle,
+  signInWithFacebook,
+} from "../utils/auth";
 
 import { useAppTheme } from "../contexts/themeContext";
 
@@ -27,8 +30,6 @@ export default function RegisterScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
-
-  const appleLogo = AppleLogos[colorScheme ?? 'light']
 
   const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); //roba dell'occhio
@@ -112,6 +113,55 @@ export default function RegisterScreen() {
       setLoading(false);
     }
   };
+
+  const handleGoogleLogin = async () => {
+  try {
+    setLoading(true);
+    setRegisterError("");
+
+    const { error } = await signInWithGoogle();
+
+    if (error) {
+      setRegisterError(error.message);
+      return;
+    }
+
+    router.replace("/(tabs)/home");
+  } catch (error) {
+    console.error("Google login error:", error);
+    setRegisterError("Google login failed.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleFacebookLogin = async () => {
+  try {
+    setLoading(true);
+    setRegisterError("");
+
+    const { error } =
+      await signInWithFacebook();
+
+    if (error) {
+      setRegisterError(error.message);
+      return;
+    }
+
+    router.replace("/(tabs)/home");
+  } catch (error) {
+    console.error(
+      "Facebook login error:",
+      error
+    );
+
+    setRegisterError(
+      "Facebook login failed."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView
@@ -303,9 +353,7 @@ export default function RegisterScreen() {
         >
           <Pressable
             style={[styles.socialButton, { backgroundColor: theme.background }]}
-            onPress={() => {
-              console.log("Signup with Google");
-            }}
+            onPress={handleGoogleLogin}
           >
             <Image
               source={require("@/assets/images/google-logo.png")}
@@ -325,19 +373,17 @@ export default function RegisterScreen() {
         </LinearGradient>
 
         <LinearGradient
-          colors={["#000000", "#C4C4C4", "#C4C4C4"]}
+          colors={["#0d26c9", "#7378ff", "#95b2ff"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.socialBorder}
         >
           <Pressable
             style={[styles.socialButton, { backgroundColor: theme.background }]}
-            onPress={() => {
-              console.log("Signup with Apple");
-            }}
+            onPress={handleFacebookLogin}
           >
             <Image
-              source={appleLogo}
+              source={require('@/assets/images/facebook-logo.png')}
               style={styles.socialIcon}
               resizeMode="contain"
             />
@@ -348,7 +394,7 @@ export default function RegisterScreen() {
                 { color: theme.text },
               ]}
             >
-              Continue with Apple
+              Continue with Facebook
             </Text>
           </Pressable>
         </LinearGradient>

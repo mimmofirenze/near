@@ -169,9 +169,8 @@ continueButtonActive: {
   socialButtonText: {
     flex: 1,
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 14,
     color: "#0A0A0A",
-    marginRight: 24,
     fontFamily: 'alanRegular',
   },
 

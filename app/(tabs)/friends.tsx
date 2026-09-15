@@ -258,7 +258,15 @@ export default function FriendsScreen() {
     profile: UserProfile,
     rightElement: ReactNode
   ) => (
-    <View style={styles.friendCard}>
+    <View
+      style={[
+        styles.friendCard,
+        {
+          backgroundColor:
+            colorScheme === "dark" ? "#22212D" : "#FFFCF3",
+        },
+      ]}
+    >
       <Image
         source={
           profile.avatar_url
@@ -278,7 +286,7 @@ export default function FriendsScreen() {
         }
       >
         <View style={styles.nameRow}>
-          <Text style={styles.name}>
+          <Text style={[styles.name, { color: theme.text }]}>
             {profile.first_name}
           </Text>
 
@@ -287,7 +295,15 @@ export default function FriendsScreen() {
           </Text>
         </View>
 
-        <Text style={styles.username}>
+        <Text
+          style={[
+            styles.username,
+            {
+              color:
+                colorScheme === "dark" ? "#A9A7B2" : "#333333",
+            },
+          ]}
+        >
           ID: {profile.username ?? "No ID"}
         </Text>
       </Pressable>
@@ -302,6 +318,7 @@ export default function FriendsScreen() {
         styles.screen,
         { backgroundColor: theme.background },
       ]}
+      edges={["top", "left", "right"]}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
@@ -636,6 +653,10 @@ export default function FriendsScreen() {
                         <Pressable
                           style={({ pressed }) => [
                             styles.viewButton,
+                            {
+                              borderColor:
+                                colorScheme === "dark" ? "#8B8998" : "#333333",
+                            },
                             pressed && styles.pressed,
                           ]}
                           onPress={() =>
@@ -648,9 +669,14 @@ export default function FriendsScreen() {
                           }
                         >
                           <Text
-                            style={
-                              styles.viewButtonText
-                            }
+                            style={[
+                              styles.viewButtonText,
+                              {
+                                color: theme.text,
+                                borderColor:
+                                  colorScheme === "dark" ? "#8B8998" : "#111111",
+                              },
+                            ]}
                           >
                             View
                           </Text>

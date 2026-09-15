@@ -10,7 +10,7 @@ import { View,
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles/loginStyles";
-import { Logos, AppleLogos } from "../constants/theme";
+import { Logos } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
@@ -18,7 +18,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { validateEmail, validatePassword, } from "../utils/validation";
 
 import { supabase } from "../lib/supabase";
-import { signIn } from "../utils/auth";
+
+import {
+  signIn,
+  signInWithGoogle,
+  signInWithFacebook,
+} from "../utils/auth";
 
 import { useAppTheme } from "../contexts/themeContext";
 
@@ -29,7 +34,6 @@ const { theme, colorScheme } =
   useAppTheme();
 
 const logo = Logos[colorScheme ?? "light"];
-const appleLogo = AppleLogos[colorScheme ?? 'light']
 
 const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
 
@@ -99,6 +103,55 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
         setLoading(false);
       }
     };
+
+    const handleGoogleLogin = async () => {
+      try {
+        setLoading(true);
+        setLoginError("");
+
+        const { error } = await signInWithGoogle();
+
+        if (error) {
+          setLoginError(error.message);
+          return;
+        }
+
+        router.replace("/(tabs)/home");
+      } catch (error) {
+        console.error("Google login error:", error);
+        setLoginError("Google login failed.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleFacebookLogin = async () => {
+  try {
+    setLoading(true);
+    setLoginError("");
+
+    const { error } =
+      await signInWithFacebook();
+
+    if (error) {
+      setLoginError(error.message);
+      return;
+    }
+
+    router.replace("/(tabs)/home");
+  } catch (error) {
+    console.error(
+      "Facebook login error:",
+      error
+    );
+
+    setLoginError(
+      "Facebook login failed."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const isFormComplete =
   email.trim().length > 0 &&
@@ -241,10 +294,7 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
             style={styles.socialBorder}
           >
             <Pressable style={[styles.socialButton, { backgroundColor: theme.background }]}
-            onPress={() => {
-                console.log("Google login");
-                // router.push("/Google login");
-              }}>
+            onPress={handleGoogleLogin}>
               <Image
                 source={require('@/assets/images/google-logo.png')}
                 style={styles.socialIcon}
@@ -254,25 +304,22 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
             </Pressable>
           </LinearGradient>
 
-          <LinearGradient //Apple login button
-            colors={["#000000", "#C4C4C4", "#C4C4C4",]}
+          <LinearGradient //fb login button
+            colors={["#0d26c9", "#7378ff", "#95b2ff",]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.socialBorder}
           >
             <Pressable style={[styles.socialButton, { backgroundColor: theme.background }]}
-            onPress={() => {
-                console.log("Apple login");
-                // router.push("/Apple login");
-              }}
+            onPress={handleFacebookLogin}
               >
               <Image
-                source={appleLogo}
+                source={require('@/assets/images/facebook-logo.png')}
                 style={styles.socialIcon}
                 resizeMode="contain"
               />
               <Text style={[styles.socialButtonText, { color: theme.text }]}>
-                Continue with Apple
+                Continue with Facebook
               </Text>
             </Pressable>
           </LinearGradient>

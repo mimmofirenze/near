@@ -1,6 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import {
+  getNearSettings,
+  setShareLocation as saveShareLocation,
+  setBackgroundLocation as saveBackgroundLocation,
+  setNearbyNotifications as saveNearbyNotifications,
+} from "../../utils/settings";
+
+import {
+  startBackgroundLocationTracking,
+  stopBackgroundLocationTracking,
+  clearCurrentUserSharedLocation,
+  updateCurrentUserLocation,
+} from "../../utils/location";
 
 import {
   Alert,
@@ -23,16 +37,124 @@ import {
 
 export default function Settings() {
   const {
-  theme,
-  themePreference,
-  setThemePreference,
-} = useAppTheme();
+    theme,
+    themePreference,
+    setThemePreference,
+  } = useAppTheme();
 
-  const [shareLocation, setShareLocation] = useState(true);
+  const [shareLocation, setShareLocation] =
+    useState(true);
+
   const [backgroundLocation, setBackgroundLocation] =
     useState(true);
+
   const [nearbyNotifications, setNearbyNotifications] =
     useState(true);
+
+  const [settingsLoaded, setSettingsLoaded] =
+    useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await getNearSettings();
+
+        setShareLocation(settings.shareLocation);
+
+        setBackgroundLocation(
+          settings.backgroundLocation
+        );
+
+        setNearbyNotifications(
+          settings.nearbyNotifications
+        );
+      } catch (error) {
+        console.error(
+          "Could not load settings:",
+          error
+        );
+      } finally {
+        setSettingsLoaded(true);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  const handleShareLocationChange = async (
+  value: boolean
+) => {
+  console.log("SHARE SWITCH CHANGED:", value);
+  setShareLocation(value);
+
+  await saveShareLocation(value);
+
+  if (!value) {
+    setBackgroundLocation(false);
+
+    await saveBackgroundLocation(false);
+
+    await stopBackgroundLocationTracking();
+
+    console.log("ABOUT TO CLEAR LOCATION");
+
+    await clearCurrentUserSharedLocation();
+
+    return;
+  }
+
+  const { error } =
+    await updateCurrentUserLocation();
+
+  if (error) {
+    Alert.alert(
+      "Location",
+      error.message
+    );
+  }
+};
+
+  const handleBackgroundLocationChange = async (
+    value: boolean
+  ) => {
+    if (!shareLocation && value) {
+      Alert.alert(
+        "Location sharing is off",
+        "Turn on location sharing before enabling background location."
+      );
+
+      return;
+    }
+
+    if (value) {
+      const { started, error } =
+        await startBackgroundLocationTracking();
+
+      if (error || !started) {
+        Alert.alert(
+          "Background location",
+          error?.message ??
+            "Could not enable background location."
+        );
+
+        return;
+      }
+    } else {
+      await stopBackgroundLocationTracking();
+    }
+
+    setBackgroundLocation(value);
+
+    await saveBackgroundLocation(value);
+  };
+
+  const handleNearbyNotificationsChange = async (
+    value: boolean
+  ) => {
+    setNearbyNotifications(value);
+
+    await saveNearbyNotifications(value);
+  };
 
   const handleLogout = async () => {
     const { error } = await signOut();
@@ -64,27 +186,27 @@ export default function Settings() {
   };
 
   const confirmDeleteAccount = () => {
-  Alert.alert(
-    "Delete account",
-    "This will permanently delete your Near account and all associated data. This action cannot be undone.",
-    [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Delete account",
-        style: "destructive",
-        onPress: () => {
-          Alert.alert(
-            "Coming soon",
-            "Account deletion will be connected to the backend soon."
-          );
+    Alert.alert(
+      "Delete account",
+      "This will permanently delete your Near account and all associated data. This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]
-  );
-};
+        {
+          text: "Delete account",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Coming soon",
+              "Account deletion will be connected to the backend soon."
+            );
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView
@@ -166,7 +288,8 @@ export default function Settings() {
 
               <Switch
                 value={shareLocation}
-                onValueChange={setShareLocation}
+                onValueChange={handleShareLocationChange}
+                disabled={!settingsLoaded}
                 trackColor={{
                   false: "#767577",
                   true: "#81B0FF",
@@ -222,7 +345,8 @@ export default function Settings() {
 
               <Switch
                 value={backgroundLocation}
-                onValueChange={setBackgroundLocation}
+                onValueChange={handleBackgroundLocationChange}
+                disabled={!settingsLoaded || !shareLocation}
                 trackColor={{
                   false: "#767577",
                   true: "#81B0FF",
@@ -292,7 +416,8 @@ export default function Settings() {
 
               <Switch
                 value={nearbyNotifications}
-                onValueChange={setNearbyNotifications}
+                onValueChange={handleNearbyNotificationsChange}
+                disabled={!settingsLoaded}
                 trackColor={{
                   false: "#767577",
                   true: "#81B0FF",

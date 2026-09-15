@@ -3,8 +3,12 @@ import * as TaskManager from "expo-task-manager";
 
 import { supabase } from "../lib/supabase";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SETTINGS_KEYS } from "../utils/settings";
+
 export const BACKGROUND_LOCATION_TASK =
   "near-background-location";
+  console.log("BACKGROUND TASK FILE LOADED");
 
 type BackgroundLocationTaskData = {
   locations: Location.LocationObject[];
@@ -13,6 +17,7 @@ type BackgroundLocationTaskData = {
 TaskManager.defineTask<BackgroundLocationTaskData>(
   BACKGROUND_LOCATION_TASK,
   async ({ data, error }) => {
+    console.log("BACKGROUND TASK FIRED");
     if (error) {
       console.log(
         "Background location task error:",
@@ -24,6 +29,15 @@ TaskManager.defineTask<BackgroundLocationTaskData>(
     const locations = data?.locations;
 
     if (!locations || locations.length === 0) {
+      return;
+    }
+
+    const shareLocation =
+      await AsyncStorage.getItem(
+        SETTINGS_KEYS.shareLocation
+      );
+
+    if (shareLocation === "false") {
       return;
     }
 
@@ -58,6 +72,17 @@ TaskManager.defineTask<BackgroundLocationTaskData>(
         accuracy,
         updated_at: new Date().toISOString(),
       });
+
+      console.log(
+        "BACKGROUND LOCATION RECEIVED:",
+        latitude,
+        longitude
+      );
+
+      console.log(
+        "BACKGROUND UPLOAD ERROR:",
+        updateError
+      );
 
     if (updateError) {
       console.log(

@@ -7,6 +7,9 @@ import {
   BACKGROUND_LOCATION_TASK,
 } from "../tasks/backgroundLocation";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SETTINGS_KEYS } from "./settings";
+
 export async function requestLocationPermission() {
   const { status } =
     await Location.requestForegroundPermissionsAsync();
@@ -59,27 +62,6 @@ export async function getCurrentLocation() {
 
 export async function updateCurrentUserLocation() {
   const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) {
-    return {
-      location: null,
-      error: userError,
-    };
-  }
-
-  if (!user) {
-    return {
-      location: null,
-      error: new Error(
-        "No authenticated user."
-      ),
-    };
-  }
-
-  const {
     location,
     error: locationError,
   } = await getCurrentLocation();
@@ -90,6 +72,42 @@ export async function updateCurrentUserLocation() {
       error:
         locationError ??
         new Error("Location unavailable."),
+    };
+  }
+
+  const shareLocation =
+    await AsyncStorage.getItem(
+      SETTINGS_KEYS.shareLocation
+    );
+
+  // Sharing OFF:
+  // still return location for the user's own map,
+  // but do NOT upload it to Supabase.
+  if (shareLocation === "false") {
+    return {
+      location,
+      error: null,
+    };
+  }
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    return {
+      location,
+      error: userError,
+    };
+  }
+
+  if (!user) {
+    return {
+      location,
+      error: new Error(
+        "No authenticated user."
+      ),
     };
   }
 
@@ -113,6 +131,61 @@ export async function updateCurrentUserLocation() {
     location,
     error,
   };
+}
+
+export async function clearCurrentUserSharedLocation() {
+  console.log("ENTERED clearCurrentUserSharedLocation");
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    console.log("CLEAR USER:", user?.id);
+    console.log("CLEAR USER ERROR:", userError);
+
+    if (userError) {
+      return { error: userError };
+    }
+
+    if (!user) {
+      return {
+        error: new Error("No authenticated user."),
+      };
+    }
+
+    console.log("ABOUT TO UPDATE SUPABASE");
+
+    const { data, error } = await supabase
+      .from("user_locations")
+      .update({
+        latitude: null,
+        longitude: null,
+        accuracy: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id)
+      .select("user_id, latitude, longitude, accuracy");
+
+    console.log("SUPABASE UPDATE FINISHED");
+    console.log("CLEAR LOCATION DATA:", data);
+    console.log("CLEAR LOCATION ERROR:", error);
+
+    return { error };
+  } catch (error) {
+    console.error(
+      "CLEAR LOCATION THREW:",
+      error
+    );
+
+    return {
+      error:
+        error instanceof Error
+          ? error
+          : new Error("Unknown clear location error"),
+    };
+  }
 }
 
 /* -------------------------------- */
@@ -186,10 +259,10 @@ export async function startBackgroundLocationTracking() {
         accuracy: Location.Accuracy.Balanced,
 
         // Update after moving approximately 50 metres.
-        distanceInterval: 50,
+        distanceInterval: 100,
 
         // Primarily used by Android.
-        timeInterval: 60_000,
+        timeInterval: 120_000,
 
         // iOS can pause tracking when it believes movement stopped.
         pausesUpdatesAutomatically: true,
@@ -376,7 +449,9 @@ export async function getFriendLocations() {
         country_code
       )
     `)
-    .in("user_id", friendIds);
+    .in("user_id", friendIds)
+    .not("latitude", "is", null)
+    .not("longitude", "is", null);
 
   return {
     friends:
@@ -389,7 +464,9 @@ export function subscribeToFriendLocationUpdates(
   onLocationChange: () => void
 ) {
   const channel = supabase
-    .channel("friend-location-updates")
+  .channel(
+    `friend-location-updates-${Date.now()}-${Math.random()}`
+  )
     .on(
       "postgres_changes",
       {
@@ -406,4 +483,218 @@ export function subscribeToFriendLocationUpdates(
   return () => {
     supabase.removeChannel(channel);
   };
+}
+
+export async function removeCurrentUserLocation() {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    return { error: userError };
+  }
+
+  if (!user) {
+    return {
+      error: new Error("No authenticated user."),
+    };
+  }
+
+  const { data, error } = await supabase
+  .from("user_locations")
+  .update({
+    latitude: null,
+    longitude: null,
+    accuracy: null,
+    updated_at: new Date().toISOString(),
+  })
+  .eq("user_id", user.id)
+  .select("user_id, latitude, longitude, accuracy");
+
+console.log("CLEAR LOCATION DATA:", data);
+console.log("CLEAR LOCATION ERROR:", error);
+
+return { error };
+}
+
+export async function watchCurrentUserLocation(
+  onLocationChange: (
+    location: Location.LocationObject
+  ) => void
+) {
+  const permissionResult =
+    await requestLocationPermission();
+
+  if (!permissionResult.granted) {
+    return {
+      subscription: null,
+      error: permissionResult.error,
+    };
+  }
+
+  const subscription =
+    await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        distanceInterval: 10,
+        timeInterval: 120_000,
+      },
+      async (location) => {
+        onLocationChange(location);
+
+        const shareLocation =
+          await AsyncStorage.getItem(
+            SETTINGS_KEYS.shareLocation
+          );
+
+        if (shareLocation === "false") {
+          return;
+        }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          return;
+        }
+
+        const {
+          latitude,
+          longitude,
+          accuracy,
+        } = location.coords;
+
+        await supabase
+          .from("user_locations")
+          .upsert({
+            user_id: user.id,
+            latitude,
+            longitude,
+            accuracy,
+            updated_at: new Date().toISOString(),
+          });
+      }
+    );
+
+  return {
+    subscription,
+    error: null,
+  };
+}
+
+export type LastSeenLocation = {
+  place: string | null;
+  updatedAt: string | null;
+};
+
+export async function getUserLastSeenLocation(
+  userId?: string
+): Promise<{
+  lastSeen: LastSeenLocation;
+  error: Error | null;
+}> {
+  try {
+    let targetUserId = userId;
+
+    if (!targetUserId) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        return {
+          lastSeen: {
+            place: null,
+            updatedAt: null,
+          },
+          error: userError,
+        };
+      }
+
+      if (!user) {
+        return {
+          lastSeen: {
+            place: null,
+            updatedAt: null,
+          },
+          error: new Error("No authenticated user"),
+        };
+      }
+
+      targetUserId = user.id;
+    }
+
+    const { data, error } = await supabase
+      .from("user_locations")
+      .select("latitude, longitude, updated_at")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+
+    if (error) {
+      return {
+        lastSeen: {
+          place: null,
+          updatedAt: null,
+        },
+        error,
+      };
+    }
+
+    if (
+      !data ||
+      data.latitude === null ||
+      data.longitude === null
+    ) {
+      return {
+        lastSeen: {
+          place: null,
+          updatedAt: null,
+        },
+        error: null,
+      };
+    }
+
+    const places = await Location.reverseGeocodeAsync({
+      latitude: data.latitude,
+      longitude: data.longitude,
+    });
+
+    const location = places[0];
+
+    const city =
+      location?.city ??
+      location?.subregion ??
+      location?.region ??
+      null;
+
+    const country = location?.country ?? null;
+
+    const place = [city, country]
+      .filter(Boolean)
+      .join(", ");
+
+    return {
+      lastSeen: {
+        place: place || null,
+        updatedAt: data.updated_at,
+      },
+      error: null,
+    };
+  } catch (error) {
+    return {
+      lastSeen: {
+        place: null,
+        updatedAt: null,
+      },
+      error:
+        error instanceof Error
+          ? error
+          : new Error(
+              "Could not load last seen location."
+            ),
+    };
+  }
 }

@@ -46,6 +46,12 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
 
+  const [lastSeenPlace, setLastSeenPlace] =
+  useState<string | null>(null);
+
+  const [lastSeenAt, setLastSeenAt] =
+  useState<string | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -68,10 +74,6 @@ export default function ProfileScreen() {
           getCurrentProfile(),
           getVisitedCountries(),
         ]);
-
-        if (!isActive) {
-          return;
-        }
 
         if (profileLoadError) {
           setProfileError(profileLoadError.message);
@@ -171,20 +173,6 @@ export default function ProfileScreen() {
             {profile?.bio || "No bio yet"}
           </Text>
         )}
-
-        <View style={styles.locationSection}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            Last seen in:
-          </Text>
-
-          <Text style={[styles.location, { color: theme.text }]}>
-            Florence, Italy
-          </Text>
-
-          <Text style={[styles.lastUpdate, { color: theme.text }]}>
-            (Last update: 2h ago)
-          </Text>
-        </View>
 
         <View style={styles.countriesSection}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>

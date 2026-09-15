@@ -326,6 +326,35 @@ export async function removeFriend(
   return { error };
 }
 
+export async function removeFriendByUserId(
+  otherUserId: string
+) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    return { error: userError };
+  }
+
+  if (!user) {
+    return {
+      error: new Error("No authenticated user"),
+    };
+  }
+
+  const { error } = await supabase
+    .from("friendships")
+    .delete()
+    .eq("status", "accepted")
+    .or(
+      `and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`
+    );
+
+  return { error };
+}
+
 export type RelationshipStatus =
   | "friend"
   | "outgoing_pending"
