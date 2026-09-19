@@ -41,6 +41,9 @@ import {
   type FriendLocation,
 } from "../../utils/location";
 
+import * as TaskManager from "expo-task-manager";
+import { BACKGROUND_LOCATION_TASK } from "../../tasks/backgroundLocation";
+
 
 const NEARBY_RADIUS_METERS = 500;
 
@@ -117,6 +120,29 @@ function formatDistance(distanceMetres: number) {
 }
 
 export default function Home() {
+
+  useEffect(() => {
+  const checkBackgroundTask = async () => {
+    console.log("TASK DEBUG:", {
+      defined: TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK),
+
+      registered:
+        await TaskManager.isTaskRegisteredAsync(
+          BACKGROUND_LOCATION_TASK
+        ),
+
+      locationStarted:
+        await Location.hasStartedLocationUpdatesAsync(
+          BACKGROUND_LOCATION_TASK
+        ),
+
+      tasks:
+        await TaskManager.getRegisteredTasksAsync(),
+    });
+  };
+
+  checkBackgroundTask();
+}, []);
 
   const { theme, colorScheme } =
   useAppTheme();
