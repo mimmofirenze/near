@@ -44,6 +44,8 @@ import {
 import * as TaskManager from "expo-task-manager";
 import { BACKGROUND_LOCATION_TASK } from "../../tasks/backgroundLocation";
 
+import { registerAndSavePushToken } from "../../utils/notifications";
+
 
 const NEARBY_RADIUS_METERS = 500;
 
@@ -142,6 +144,29 @@ export default function Home() {
   };
 
   checkBackgroundTask();
+}, []);
+
+useEffect(() => {
+  const setupPushNotifications = async () => {
+    console.log("STARTING PUSH REGISTRATION");
+
+    const { token, error } =
+      await registerAndSavePushToken();
+
+    if (error) {
+      console.log(
+        "PUSH REGISTRATION ERROR:",
+        error.message
+      );
+      return;
+    }
+
+    console.log(
+      "PUSH REGISTRATION SUCCESS:",
+    );
+  };
+
+  setupPushNotifications();
 }, []);
 
   const { theme, colorScheme } =

@@ -30,6 +30,7 @@
           "apiKey": "AIzaSyBtCq_-FJ9B2xIslIRGSduhunvfj2OJg7g"
         }
       },
+      "googleServicesFile": "./google-services.json",
       "package": "com.mimmofirenze.near"
     },
     "web": {

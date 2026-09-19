@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "586394502973",
+    "project_id": "near-fdf24",
+    "storage_bucket": "near-fdf24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586394502973:android:a8694fef1981913c5ae754",
+        "android_client_info": {
+          "package_name": "com.mimmofirenze.near"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaGPTlkaHWD_HBbvrMRTLiOYflS7CYfgo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

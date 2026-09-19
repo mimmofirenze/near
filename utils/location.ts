@@ -258,8 +258,8 @@ export async function startBackgroundLocationTracking() {
       {
         accuracy: Location.Accuracy.Balanced,
 
-        // Update after moving approximately 50 metres.
-        distanceInterval: 100,
+        // Allow location updates without requiring a minimum movement distance.
+        distanceInterval: 0,
 
         // Primarily used by Android.
         timeInterval: 120_000,
