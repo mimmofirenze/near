@@ -96,9 +96,9 @@ export default function EditProfileScreen() {
         return;
       }
 
-      setFirstName(profile?.first_name ?? "");
-      setUsername(profile?.username ?? "");
-      setBio(profile?.bio ?? "");
+      setFirstName((profile?.first_name ?? "").slice(0, 20));
+      setUsername((profile?.username ?? "").slice(0, 20));
+      setBio((profile?.bio ?? "").slice(0, 150));
       setAvatarUrl(profile?.avatar_url ?? null);
 
       if (profile?.country_code) {
@@ -216,9 +216,9 @@ export default function EditProfileScreen() {
       setErrorMessage("");
 
       const { error } = await updateCurrentProfile({
-        first_name: firstName,
-        username,
-        bio,
+        first_name: firstName.trim().slice(0, 20),
+        username: username.trim().slice(0, 20),
+        bio: bio.trim().slice(0, 150),
         country_code: countryCode,
       });
 
@@ -369,6 +369,7 @@ export default function EditProfileScreen() {
           <TextInput
             value={firstName}
             onChangeText={setFirstName}
+            maxLength={20}
             placeholder="First name"
             placeholderTextColor="#888"
             style={{
@@ -384,6 +385,7 @@ export default function EditProfileScreen() {
           <TextInput
             value={username}
             onChangeText={setUsername}
+            maxLength={20}
             placeholder="Username"
             autoCapitalize="none"
             autoCorrect={false}
@@ -542,6 +544,7 @@ export default function EditProfileScreen() {
           <TextInput
             value={bio}
             onChangeText={setBio}
+            maxLength={150}
             placeholder="Bio"
             multiline
             placeholderTextColor="#888"

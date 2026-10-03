@@ -86,7 +86,7 @@ export default function RegisterScreen() {
       setLoading(true);
 
       const { data, error } = await signUp(
-        firstName,
+        firstName.trim(),
         email,
         password
       );
@@ -194,6 +194,7 @@ const handleFacebookLogin = async () => {
             autoCapitalize="words"
             autoCorrect={false}
             value={firstName}
+            maxLength={20}
             onChangeText={(text) => {
               setFirstName(text);
               setFirstNameError("");
