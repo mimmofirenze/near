@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
+  AppState,
   Image,
   Pressable,
   Text,
@@ -35,7 +36,7 @@ import {
   updateCurrentUserLocation,
   getFriendLocations,
   subscribeToFriendLocationUpdates,
-  startBackgroundLocationTracking,
+  restartBackgroundLocationTracking,
   stopBackgroundLocationTracking,
   watchCurrentUserLocation,
   type FriendLocation,
@@ -288,34 +289,42 @@ useEffect(() => {
   };
 }, []);
 
-  useEffect(() => {
+useEffect(() => {
+  let running = false;
+
   const syncBackgroundTracking = async () => {
-    const settings = await getNearSettings();
+    if (running) return;
+    running = true;
 
-    if (
-      settings.shareLocation &&
-      settings.backgroundLocation
-    ) {
-      const { started, error } =
-        await startBackgroundLocationTracking();
+    try {
+      const settings = await getNearSettings();
 
-      if (error) {
-        console.log(
-          "Background tracking error:",
-          error.message
-        );
+      if (settings.shareLocation && settings.backgroundLocation) {
+        const { started, error } =
+          await restartBackgroundLocationTracking();
+
+        if (error) {
+          console.log("Background tracking error:", error.message);
+        }
+
+        console.log("Background tracking started:", started);
+      } else {
+        await stopBackgroundLocationTracking();
       }
-
-      console.log(
-        "Background tracking started:",
-        started
-      );
-    } else {
-      await stopBackgroundLocationTracking();
+    } finally {
+      running = false;
     }
   };
 
   syncBackgroundTracking();
+
+  const sub = AppState.addEventListener("change", (state) => {
+    if (state === "active") {
+      syncBackgroundTracking();
+    }
+  });
+
+  return () => sub.remove();
 }, []);
 
   useFocusEffect(

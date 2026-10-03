@@ -265,7 +265,7 @@ export async function startBackgroundLocationTracking() {
         timeInterval: 120_000,
 
         // iOS can pause tracking when it believes movement stopped.
-        pausesUpdatesAutomatically: true,
+        pausesUpdatesAutomatically: false,
 
         // Shows the blue location indicator on iOS.
         showsBackgroundLocationIndicator: true,
@@ -331,6 +331,11 @@ export async function stopBackgroundLocationTracking() {
             ),
     };
   }
+}
+
+export async function restartBackgroundLocationTracking() {
+  await stopBackgroundLocationTracking();
+  return startBackgroundLocationTracking();
 }
 
 export async function isBackgroundLocationTrackingEnabled() {
