@@ -34,6 +34,8 @@ import { countryCodeToFlag } from "../../utils/countries";
 
 import { useAppTheme } from "../../contexts/themeContext";
 
+import { supabase } from "../../lib/supabase";
+
 type UserProfile = {
   id: string;
   first_name: string;
@@ -136,6 +138,27 @@ export default function FriendsScreen() {
       loadFriendsData();
     }, [loadFriendsData])
   );
+
+useEffect(() => {
+  const channel = supabase
+    .channel("friends-screen-realtime")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "friendships",
+      },
+      () => {
+        loadFriendsData();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [loadFriendsData]);
 
   useEffect(() => {
     const query = search.trim();

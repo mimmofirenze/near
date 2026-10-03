@@ -163,6 +163,42 @@ export async function getIncomingFriendRequests() {
   };
 }
 
+export async function getIncomingFriendRequestFromUser(
+  senderId: string
+) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    return {
+      request: null,
+      error: userError,
+    };
+  }
+
+  if (!user) {
+    return {
+      request: null,
+      error: new Error("No authenticated user"),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("friendships")
+    .select("id")
+    .eq("sender_id", senderId)
+    .eq("receiver_id", user.id)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  return {
+    request: data,
+    error,
+  };
+}
+
 export async function acceptFriendRequest(
   friendshipId: string
 ) {

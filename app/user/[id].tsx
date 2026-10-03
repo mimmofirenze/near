@@ -30,6 +30,9 @@ import { useAppTheme } from "../../contexts/themeContext";
 import {
   sendFriendRequest,
   getRelationshipStatuses,
+  getIncomingFriendRequestFromUser,
+  acceptFriendRequest,
+  declineFriendRequest,
   removeFriendByUserId,
   type RelationshipStatus,
 } from "../../utils/friends";
@@ -76,6 +79,12 @@ export default function UserProfileScreen() {
   useState<RelationshipStatus | null>(null);
 
   const [sendingRequest, setSendingRequest] =
+  useState(false);
+
+  const [incomingRequestId, setIncomingRequestId] =
+  useState<string | null>(null);
+
+  const [processingRequest, setProcessingRequest] =
   useState(false);
 
   const [lastSeenPlace, setLastSeenPlace] =
@@ -131,16 +140,26 @@ export default function UserProfileScreen() {
       setLastSeenAt(lastSeen.updatedAt);
 
       setProfile(profile);
-      const {
-        statuses,
-        error: statusError,
-      } = await getRelationshipStatuses();
 
-      if (!statusError && id) {
-        setRelationshipStatus(
-          statuses[id] ?? null
-        );
-      }
+const {
+  statuses,
+  error: statusError,
+} = await getRelationshipStatuses();
+
+if (!statusError && id) {
+  const status = statuses[id] ?? null;
+
+  setRelationshipStatus(status);
+
+  if (status === "incoming_pending") {
+    const { request, error } =
+      await getIncomingFriendRequestFromUser(id);
+
+    if (!error && request) {
+      setIncomingRequestId(request.id);
+    }
+  }
+}
       setLoading(false);
     };
 
@@ -171,6 +190,62 @@ export default function UserProfileScreen() {
     );
   } finally {
     setSendingRequest(false);
+  }
+};
+
+const handleAcceptRequest = async () => {
+  if (!incomingRequestId || processingRequest) {
+    return;
+  }
+
+  try {
+    setProcessingRequest(true);
+    setErrorMessage("");
+
+    const { error } =
+      await acceptFriendRequest(incomingRequestId);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    setRelationshipStatus("friend");
+    setIncomingRequestId(null);
+  } catch {
+    setErrorMessage(
+      "Could not accept the friend request."
+    );
+  } finally {
+    setProcessingRequest(false);
+  }
+};
+
+const handleDeclineRequest = async () => {
+  if (!incomingRequestId || processingRequest) {
+    return;
+  }
+
+  try {
+    setProcessingRequest(true);
+    setErrorMessage("");
+
+    const { error } =
+      await declineFriendRequest(incomingRequestId);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    setRelationshipStatus(null);
+    setIncomingRequestId(null);
+  } catch {
+    setErrorMessage(
+      "Could not decline the friend request."
+    );
+  } finally {
+    setProcessingRequest(false);
   }
 };
 
@@ -321,68 +396,156 @@ const handleSeeOnMap = () => {
             : ""}
         </Text>
 
-        <Pressable
-          disabled={
-            sendingRequest ||
-            relationshipStatus === "friend" ||
-            relationshipStatus ===
-              "outgoing_pending"
-          }
-          onPress={handleAddFriend}
-          style={({ pressed }) => [
-            {
-              marginTop: 16,
-              paddingHorizontal: 22,
-              paddingVertical: 10,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: theme.text,
-              opacity:
-                sendingRequest ||
-                relationshipStatus === "friend" ||
-                relationshipStatus ===
-                  "outgoing_pending"
-                  ? 0.55
-                  : pressed
-                  ? 0.65
-                  : 1,
-            },
-          ]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            {relationshipStatus === "friend" && (
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color={theme.text}
-              />
-            )}
+        {relationshipStatus === "incoming_pending" ? (
+  <View
+    style={{
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 16,
+    }}
+  >
+    <Pressable
+      disabled={processingRequest}
+      onPress={handleAcceptRequest}
+      style={({ pressed }) => ({
+        paddingHorizontal: 22,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: "#B8E6C1",
+        opacity:
+          processingRequest
+            ? 0.5
+            : pressed
+            ? 0.7
+            : 1,
+      })}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <Ionicons
+          name="checkmark-outline"
+          size={19}
+          color="#224A2B"
+        />
 
-            <Text
-              style={{
-                color: theme.text,
-                fontFamily: "alanRegular",
-                fontSize: 15,
-              }}
-            >
-              {sendingRequest
-                ? "Sending..."
-                : relationshipStatus === "friend"
-                ? "Friends"
-                : relationshipStatus === "outgoing_pending"
-                ? "Requested"
-                : relationshipStatus === "incoming_pending"
-                ? "Friend request received"
-                : "Add friend"}
-            </Text>
-          </View>
-        </Pressable>
+        <Text
+          style={{
+            color: "#224A2B",
+            fontFamily: "alanRegular",
+            fontSize: 15,
+          }}
+        >
+          Accept
+        </Text>
+      </View>
+    </Pressable>
+
+    <Pressable
+      disabled={processingRequest}
+      onPress={handleDeclineRequest}
+      style={({ pressed }) => ({
+        paddingHorizontal: 22,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: "#F1B8B8",
+        opacity:
+          processingRequest
+            ? 0.5
+            : pressed
+            ? 0.7
+            : 1,
+      })}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <Ionicons
+          name="close-outline"
+          size={19}
+          color="#5A2020"
+        />
+
+        <Text
+          style={{
+            color: "#5A2020",
+            fontFamily: "alanRegular",
+            fontSize: 15,
+          }}
+        >
+          Decline
+        </Text>
+      </View>
+    </Pressable>
+  </View>
+) : (
+  <Pressable
+    disabled={
+      sendingRequest ||
+      relationshipStatus === "friend" ||
+      relationshipStatus === "outgoing_pending"
+    }
+    onPress={handleAddFriend}
+    style={({ pressed }) => [
+      {
+        marginTop: 16,
+        paddingHorizontal: 22,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.text,
+        opacity:
+          sendingRequest ||
+          relationshipStatus === "friend" ||
+          relationshipStatus === "outgoing_pending"
+            ? 0.55
+            : pressed
+            ? 0.65
+            : 1,
+      },
+    ]}
+  >
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      {relationshipStatus === "friend" && (
+        <Ionicons
+          name="checkmark-circle"
+          size={18}
+          color={theme.text}
+        />
+      )}
+
+      <Text
+        style={{
+          color: theme.text,
+          fontFamily: "alanRegular",
+          fontSize: 15,
+        }}
+      >
+        {sendingRequest
+          ? "Sending..."
+          : relationshipStatus === "friend"
+          ? "Friends"
+          : relationshipStatus === "outgoing_pending"
+          ? "Requested"
+          : "Add friend"}
+      </Text>
+    </View>
+  </Pressable>
+)}
 
         {relationshipStatus === "friend" ? (
   <Pressable

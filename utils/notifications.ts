@@ -4,6 +4,15 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { supabase } from "../lib/supabase";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export async function registerForPushNotifications() {
   try {
     if (!Device.isDevice) {

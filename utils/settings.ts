@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "../lib/supabase";
 
 
 export const SETTINGS_KEYS = {
@@ -59,8 +60,33 @@ export async function setBackgroundLocation(value: boolean) {
 }
 
 export async function setNearbyNotifications(value: boolean) {
+  // Save locally
   await AsyncStorage.setItem(
     SETTINGS_KEYS.nearbyNotifications,
     String(value)
   );
+
+  // Save to Supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("notification_settings")
+    .update({
+      nearby_notifications: value,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error(
+      "UPDATE NEARBY NOTIFICATIONS ERROR:",
+      error.message
+    );
+  }
 }

@@ -47,8 +47,22 @@ import { BACKGROUND_LOCATION_TASK } from "../../tasks/backgroundLocation";
 
 import { registerAndSavePushToken } from "../../utils/notifications";
 
+import { supabase } from "../../lib/supabase";
 
-const NEARBY_RADIUS_METERS = 500;
+
+const DEFAULT_NEARBY_RADIUS_METERS = 500;
+
+const NEARBY_RADIUS_OPTIONS = [
+  { label: "500 m", value: 500 },
+  { label: "1 km", value: 1000 },
+  { label: "5 km", value: 5000 },
+  { label: "10 km", value: 10000 },
+  { label: "25 km", value: 25000 },
+  { label: "50 km", value: 50000 },
+  { label: "100 km", value: 100000 },
+  { label: "200 km", value: 200000 },
+  { label: "500 km", value: 500000 },
+];
 
 const MAP_ZOOM = {
   latitudeDelta: 0.2,
@@ -187,6 +201,12 @@ useEffect(() => {
   const [coordinates, setCoordinates] =
     useState<Coordinates | null>(null);
 
+  const [nearbyRadius, setNearbyRadius] =
+  useState<number | null>(null);
+
+    const [showRadiusSelector, setShowRadiusSelector] =
+      useState(false);
+
   const [friendLocations, setFriendLocations] =
     useState<FriendLocation[]>([]);
 
@@ -198,6 +218,39 @@ useEffect(() => {
 
   const [locationError, setLocationError] =
     useState("");
+
+useEffect(() => {
+  const loadNearbyRadius = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("notification_settings")
+      .select("nearby_radius_meters")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.log(
+        "LOAD NEARBY RADIUS ERROR:",
+        error.message
+      );
+      return;
+    }
+
+    setNearbyRadius(
+      data?.nearby_radius_meters ??
+        DEFAULT_NEARBY_RADIUS_METERS
+    );
+  };
+
+  loadNearbyRadius();
+}, []);
 
   const loadCurrentLocation = async () => {
     try {
@@ -392,6 +445,40 @@ useEffect(() => {
     );
   };
 
+  const handleRadiusChange = async (radius: number) => {
+  const previousRadius = nearbyRadius;
+
+  // Change the circle immediately
+  setNearbyRadius(radius);
+  setShowRadiusSelector(false);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    setNearbyRadius(previousRadius);
+    return;
+  }
+
+  const { error } = await supabase
+    .from("notification_settings")
+    .update({
+      nearby_radius_meters: radius,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.log(
+      "UPDATE NEARBY RADIUS ERROR:",
+      error.message
+    );
+
+    setNearbyRadius(previousRadius);
+  }
+};
+
   const handleFriendMarkerPress = (
     friend: FriendLocation
   ) => {
@@ -408,7 +495,7 @@ useEffect(() => {
     );
   };
 
-  useEffect(() => {
+useEffect(() => {
   if (!friendId || friendLocations.length === 0) {
     return;
   }
@@ -433,6 +520,12 @@ useEffect(() => {
       },
       400
     );
+
+    // friendId is only a one-time instruction.
+    // Remove it after opening the friend on the map.
+    router.setParams({
+      friendId: undefined,
+    });
   }, 300);
 
   return () => clearTimeout(timeout);
@@ -619,13 +712,16 @@ useEffect(() => {
           setSelectedFriend(null)
         }
       >
-        <Circle
-          center={coordinates}
-          radius={NEARBY_RADIUS_METERS}
-          fillColor="rgba(66, 153, 225, 0.18)"
-          strokeColor="rgba(66, 153, 225, 0.35)"
-          strokeWidth={1}
-        />
+        {nearbyRadius !== null && (
+          <Circle
+            key={`nearby-radius-${nearbyRadius}`}
+            center={coordinates}
+            radius={nearbyRadius}
+            fillColor="rgba(66, 153, 225, 0.18)"
+            strokeColor="rgba(66, 153, 225, 0.35)"
+            strokeWidth={1}
+          />
+        )}
 
         {friendLocations.map(
           (friend, index) => (
@@ -829,6 +925,84 @@ useEffect(() => {
         </View>
       ) : null}
 
+      {showRadiusSelector ? (
+        <View
+          style={{
+            position: "absolute",
+            right: 82,
+            bottom: selectedFriend ? 255 : 24,
+            backgroundColor: theme.background,
+            borderRadius: 18,
+            padding: 14,
+            shadowColor: "#000",
+            shadowOpacity: 0.18,
+            shadowRadius: 10,
+            shadowOffset: {
+              width: 0,
+              height: 4,
+            },
+            elevation: 8,
+          }}
+        >
+          <Text
+            style={{
+              color: theme.text,
+              fontFamily: "alanRegular",
+              fontSize: 16,
+              marginBottom: 10,
+            }}
+          >
+            Near range
+          </Text>
+
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+              width: 220,
+            }}
+          >
+            {NEARBY_RADIUS_OPTIONS.map((option) => {
+              const selected =
+                nearbyRadius === option.value;
+
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() =>
+                    handleRadiusChange(option.value)
+                  }
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 11,
+                    paddingVertical: 9,
+                    borderRadius: 12,
+                    backgroundColor: selected
+                      ? "#2563EB"
+                      : theme.background,
+                    borderWidth: selected ? 0 : 1,
+                    borderColor: "rgba(128,128,128,0.25)",
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      color: selected
+                        ? "#FFFFFF"
+                        : theme.text,
+                      fontFamily: "alanRegular",
+                      fontSize: 13,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+
       <View
         style={{
           position: "absolute",
@@ -839,6 +1013,34 @@ useEffect(() => {
           gap: 12,
         }}
       >
+      <Pressable
+        onPress={() =>
+          setShowRadiusSelector((current) => !current)
+        }
+        style={({ pressed }) => ({
+          width: 52,
+          height: 52,
+          borderRadius: 16,
+          backgroundColor: theme.background,
+          justifyContent: "center",
+          alignItems: "center",
+          opacity: pressed ? 0.75 : 1,
+          shadowColor: "#000",
+          shadowOpacity: 0.18,
+          shadowRadius: 8,
+          shadowOffset: {
+            width: 0,
+            height: 3,
+          },
+          elevation: 5,
+        })}
+      >
+        <Ionicons
+          name="radio-outline"
+          size={27}
+          color="#2563EB"
+        />
+      </Pressable>
         <Pressable
           onPress={handleOverview}
           style={({ pressed }) => ({
