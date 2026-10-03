@@ -385,9 +385,7 @@ useEffect(() => {
                 styles.qrButton,
                 pressed && styles.pressed,
               ]}
-              onPress={() =>
-                console.log("Open QR scanner")
-              }
+              onPress={() => router.push("/qr")}
             >
               <Ionicons
                 name="qr-code-outline"
