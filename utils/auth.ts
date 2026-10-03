@@ -2,6 +2,46 @@ import { supabase } from "../lib/supabase";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 
+async function syncSocialFirstName() {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    console.log("SOCIAL PROFILE SYNC ERROR:", error?.message);
+    return;
+  }
+
+  const metadata = user.user_metadata;
+
+  const firstName =
+    metadata?.given_name?.trim() ||
+    metadata?.first_name?.trim() ||
+    metadata?.full_name?.trim()?.split(/\s+/)[0] ||
+    metadata?.name?.trim()?.split(/\s+/)[0] ||
+    "";
+
+  if (!firstName) {
+    console.log("No social first name found");
+    return;
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      first_name: firstName,
+    })
+    .eq("id", user.id);
+
+  if (profileError) {
+    console.log(
+      "SOCIAL PROFILE UPDATE ERROR:",
+      profileError.message
+    );
+  }
+}
+
 export async function signUp(
   firstName: string,
   email: string,
@@ -105,6 +145,8 @@ export async function signInWithGoogle() {
       };
     }
 
+    await syncSocialFirstName();
+
     return {
       data: sessionData,
       error: null,
@@ -194,6 +236,8 @@ export async function signInWithFacebook() {
     if (sessionError) {
       return { error: sessionError };
     }
+
+    await syncSocialFirstName();
 
     return {
       data: sessionData,

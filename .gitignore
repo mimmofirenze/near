@@ -43,3 +43,12 @@ app-example
 /android
 
 supabase/.temp/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build/debug logs
+build*.txt
+full-build*.txt
