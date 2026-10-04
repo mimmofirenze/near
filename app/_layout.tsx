@@ -11,6 +11,8 @@ import {
   useAppTheme,
 } from "../contexts/themeContext";
 
+import { LoginTransitionProvider } from "../contexts/loginTransitionContext";
+
 function RootNavigator() {
   const { theme, colorScheme } =
     useAppTheme();
@@ -80,6 +82,7 @@ function RootNavigator() {
       <Stack
         screenOptions={{
           headerShown: false,
+          animation: "fade",
           contentStyle: {
             backgroundColor:
               theme.background,
@@ -102,7 +105,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <RootNavigator />
+      <LoginTransitionProvider>
+        <RootNavigator />
+      </LoginTransitionProvider>
     </ThemeProvider>
   );
 }

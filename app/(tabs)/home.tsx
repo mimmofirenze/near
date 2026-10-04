@@ -49,6 +49,8 @@ import { registerAndSavePushToken } from "../../utils/notifications";
 
 import { supabase } from "../../lib/supabase";
 
+import { useLoginTransition } from "../../contexts/loginTransitionContext";
+
 
 const DEFAULT_NEARBY_RADIUS_METERS = 500;
 
@@ -292,16 +294,31 @@ useEffect(() => {
     }
   };
 
+const { markHomeReady } = useLoginTransition();
+const [mapLoaded, setMapLoaded] = useState(false);
+const [friendsLoaded, setFriendsLoaded] = useState(false);
+
+useEffect(() => {
+  const everythingReady = coordinates && mapLoaded && friendsLoaded;
+  const locationFailed = !loadingLocation && !coordinates; // "Try again" screen
+
+  if (everythingReady || locationFailed) {
+    markHomeReady();
+  }
+}, [coordinates, mapLoaded, friendsLoaded, loadingLocation, markHomeReady]);
+
   const loadFriendLocations = useCallback(async () => {
     const { friends, error } =
       await getFriendLocations();
 
     if (error) {
       setLocationError(error.message);
+      setFriendsLoaded(true);
       return;
     }
 
     setFriendLocations(friends);
+    setFriendsLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -617,11 +634,14 @@ useEffect(() => {
   return (
     <View style={{ flex: 1 }}>
       <ClusteredMapView
+      key={`map-${colorScheme}`}
         mapRef={(ref) => {
           mapRef.current = ref as MapView | null;
         }}
         style={{ flex: 1 }}
         initialRegion={initialRegion}
+        userInterfaceStyle={colorScheme}
+        onMapLoaded={() => setMapLoaded(true)}
         showsUserLocation
         showsMyLocationButton={false}
         showsCompass={false}

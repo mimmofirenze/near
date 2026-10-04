@@ -238,6 +238,8 @@ export async function signInWithFacebook() {
         redirectTo
       );
 
+      console.log("Facebook OAuth result:", result);
+
     if (result.type !== "success") {
       return {
         error: new Error(

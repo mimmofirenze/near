@@ -30,8 +30,15 @@ import {
 
 import { useAppTheme } from "../contexts/themeContext";
 
+import { useLoginTransition } from "../contexts/loginTransitionContext";
+
+let authFlowInProgress = false;
+
 
 export default function LoginScreen() {
+
+  const { start: startTransition, cancel: cancelTransition } =
+  useLoginTransition();
 
 const { theme, colorScheme } =
   useAppTheme();
@@ -70,7 +77,7 @@ useFocusEffect(
         return;
       }
 
-      if (session) {
+      if (session && !authFlowInProgress) {
         router.replace("/(tabs)/home");
         return;
       }
@@ -82,39 +89,48 @@ useFocusEffect(
   }, [])
 );
 
-  const handleLogin = async () => {
-      const newEmailError = validateEmail(email);
-      const newPasswordError = validatePassword(password);
+const handleLogin = async () => {
+  const newEmailError = validateEmail(email);
+  const newPasswordError = validatePassword(password);
 
-      setEmailError(newEmailError);
-      setPasswordError(newPasswordError);
-      setLoginError("");
+  setEmailError(newEmailError);
+  setPasswordError(newPasswordError);
+  setLoginError("");
 
-      if (newEmailError || newPasswordError) {
-        return;
-      }
+  if (newEmailError || newPasswordError) {
+    return;
+  }
 
-      try {
-        setLoading(true);
+  authFlowInProgress = true;
 
-        const { error } = await signIn(email, password);
+  try {
+    setLoading(true);
+    startTransition(); // animation appears instantly
 
-        if (error) {
-          setLoginError("Incorrect email or password.");
-          return;
-        }
+    const { error } = await signIn(email, password);
 
-        router.replace("/(tabs)/home");
-      } catch (error) {
-        console.error("Login error:", error);
-        setLoginError("Something went wrong. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (error) {
+      cancelTransition(); // wrong password: hide it again
+      authFlowInProgress = false;
+      setLoginError("Incorrect email or password.");
+      return;
+    }
+
+    router.replace("/(tabs)/home"); // no waiting, Home loads under the animation
+    authFlowInProgress = false;
+  } catch (error) {
+    console.error("Login error:", error);
+    cancelTransition();
+    authFlowInProgress = false;
+    setLoginError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
     const handleGoogleLogin = async () => {
       try {
+        authFlowInProgress = true;
         setLoading(true);
         setLoginError("");
 
@@ -125,11 +141,13 @@ useFocusEffect(
           return;
         }
 
+        startTransition();
         router.replace("/(tabs)/home");
       } catch (error) {
         console.error("Google login error:", error);
         setLoginError("Google login failed.");
       } finally {
+        authFlowInProgress = false;
         setLoading(false);
       }
     };
@@ -146,7 +164,7 @@ useFocusEffect(
       setLoginError(error.message);
       return;
     }
-
+    startTransition();
     router.replace("/(tabs)/home");
   } catch (error) {
     console.error(
