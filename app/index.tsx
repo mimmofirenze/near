@@ -12,8 +12,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles/loginStyles";
 import { Logos } from "../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useState, useEffect } from "react";
+import {
+  router,
+  useFocusEffect,
+} from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { validateEmail, validatePassword, } from "../utils/validation";
 
@@ -49,29 +52,35 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
   const [loginError, setLoginError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
 
-  useEffect(() => {
-      const checkSession = async () => {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+useFocusEffect(
+  useCallback(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
-        if (error) {
-          console.error("Session error:", error.message);
-          setCheckingSession(false);
-          return;
-        }
-
-        if (session) {
-          router.replace("/(tabs)/home");
-          return;
-        }
+      if (error) {
+        console.error(
+          "Session error:",
+          error.message
+        );
 
         setCheckingSession(false);
-      };
+        return;
+      }
 
-      checkSession();
-    }, []);
+      if (session) {
+        router.replace("/(tabs)/home");
+        return;
+      }
+
+      setCheckingSession(false);
+    };
+
+    checkSession();
+  }, [])
+);
 
   const handleLogin = async () => {
       const newEmailError = validateEmail(email);

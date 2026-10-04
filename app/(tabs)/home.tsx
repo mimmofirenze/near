@@ -547,6 +547,7 @@ useEffect(() => {
           style={{
             color: theme.text,
             marginTop: 14,
+            fontFamily: "alanRegular",
           }}
         >
           Finding your location...
@@ -571,6 +572,7 @@ useEffect(() => {
             color: theme.text,
             textAlign: "center",
             marginBottom: 16,
+            fontFamily: "alanRegular",
           }}
         >
           {locationError ||
@@ -589,6 +591,7 @@ useEffect(() => {
           <Text
             style={{
               color: theme.background,
+              fontFamily: "alanRegular",
             }}
           >
             Try again
@@ -1115,6 +1118,7 @@ useEffect(() => {
             style={{
               color: "#FFFFFF",
               textAlign: "center",
+              fontFamily: "alanRegular",
             }}
           >
             {locationError}

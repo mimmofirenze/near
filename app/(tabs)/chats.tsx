@@ -217,6 +217,7 @@ export default function ChatsScreen() {
             color: "#E53935",
             paddingHorizontal: 22,
             marginBottom: 10,
+            fontFamily: "alanRegular",
           }}
         >
           {errorMessage}
@@ -314,7 +315,9 @@ export default function ChatsScreen() {
                         styles.name,
                         {
                             color: theme.text,
-                            fontWeight: unread ? "600" : "400",
+                            fontFamily: unread
+                            ? "alanSemiBold"
+                            : "alanRegular",
                         },
                         ]}
                     >
@@ -342,9 +345,9 @@ export default function ChatsScreen() {
                             ? theme.text
                             : "#888888",
 
-                        fontWeight: unread
-                            ? "600"
-                            : "400",
+                        fontFamily: unread
+                          ? "alanSemiBold"
+                          : "alanRegular",
 
                         fontStyle: isTyping
                             ? "italic"

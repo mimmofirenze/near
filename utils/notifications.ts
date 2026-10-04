@@ -1,16 +1,48 @@
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
-import { Platform } from "react-native";
+import {
+  AppState,
+  Platform,
+} from "react-native";
 import { supabase } from "../lib/supabase";
 
+let activeConversationId: string | null = null;
+
+export function setActiveConversationId(
+  conversationId: string | null
+) {
+  activeConversationId = conversationId;
+}
+
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    const data =
+      notification.request.content.data;
+
+    const isCurrentChat =
+      AppState.currentState === "active" &&
+      data?.type === "chat_message" &&
+      typeof data.conversationId === "string" &&
+      data.conversationId ===
+        activeConversationId;
+
+    if (isCurrentChat) {
+      return {
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      };
+    }
+
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 export async function registerForPushNotifications() {

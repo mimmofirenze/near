@@ -36,6 +36,13 @@ import type {
   ChatUser,
 } from "../../utils/chat";
 
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
+
+import {
+  setActiveConversationId,
+} from "../../utils/notifications";
+
 const PAGE_SIZE = 40;
 
 type ChatListItem =
@@ -96,6 +103,18 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
+
+  useFocusEffect(
+  useCallback(() => {
+    if (!id) return;
+
+    setActiveConversationId(id);
+
+    return () => {
+      setActiveConversationId(null);
+    };
+  }, [id])
+);
 
   const { theme, colorScheme } = useAppTheme();
 

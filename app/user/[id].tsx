@@ -327,7 +327,12 @@ const handleOpenChat = async () => {
           },
         ]}
       >
-        <Text style={{ color: theme.text }}>
+        <Text
+          style={{
+            color: theme.text,
+            fontFamily: "alanRegular",
+          }}
+        >
           Loading...
         </Text>
       </SafeAreaView>
@@ -350,69 +355,128 @@ const handleOpenChat = async () => {
         showsVerticalScrollIndicator={false}
       >
         <View
-  style={{
-    width: "100%",
-    marginTop: 34,
-    marginBottom: 0,
-  }}
->
-  <Ionicons
-    name="arrow-back-outline"
-    size={30}
-    color={theme.text}
-    onPress={() => router.back()}
-  />
-</View>
-
-        {errorMessage ? (
-          <Text
-            style={[
-              styles.bio,
-              { color: "#E53935" },
-            ]}
-          >
-            {errorMessage}
-          </Text>
-        ) : null}
-
-        <Image
-          source={
-            profile?.avatar_url
-              ? {
-                  uri: profile.avatar_url,
-                }
-              : defaultAvatar
-          }
-          style={styles.profileImage}
-        />
-
-        <View style={styles.nameRow}>
-          <Text
-            style={[
-              styles.name,
-              { color: theme.text },
-            ]}
-          >
-            {profile?.first_name}
-          </Text>
-
-          <Text style={styles.mainFlag}>
-            {countryCodeToFlag(
-              profile?.country_code
-            )}
-          </Text>
+          style={{
+            width: "100%",
+            marginTop: 34,
+            marginBottom: 0,
+          }}
+        >
+          <Ionicons
+            name="arrow-back-outline"
+            size={30}
+            color={theme.text}
+            onPress={() => router.back()}
+          />
         </View>
 
-        <Text
-          style={[
-            styles.username,
-            { color: theme.text },
-          ]}
+                {errorMessage ? (
+                  <Text
+                    style={[
+                      styles.bio,
+                      { color: "#E53935" },
+                    ]}
+                  >
+                    {errorMessage}
+                  </Text>
+                ) : null}
+
+                <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            width: "100%",
+            marginTop: 10,
+            marginBottom: 18,
+          }}
         >
-          {profile?.username
-            ? `ID: ${profile.username}`
-            : ""}
-        </Text>
+          <Image
+            source={
+              profile?.avatar_url
+                ? {
+                    uri: profile.avatar_url,
+                  }
+                : defaultAvatar
+            }
+            style={[
+              styles.profileImage,
+              {
+                marginRight: 22,
+              },
+            ]}
+          />
+
+          <View
+            style={{
+              flex: 1,
+              alignItems: "flex-start",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Text
+                style={[
+                  styles.name,
+                  {
+                    color: theme.text,
+                  },
+                ]}
+              >
+                {profile?.first_name}
+              </Text>
+
+              <Text style={styles.mainFlag}>
+                {countryCodeToFlag(
+                  profile?.country_code
+                )}
+              </Text>
+            </View>
+
+            <Text
+              style={[
+                styles.username,
+                {
+                  color: theme.text,
+                  marginTop: 4,
+                },
+              ]}
+            >
+              {profile?.username
+                ? `ID: ${profile.username}`
+                : ""}
+            </Text>
+            {relationshipStatus === "friend" ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                  marginTop: 8,
+                }}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={18}
+                  color={theme.text}
+                />
+
+                <Text
+                  style={{
+                    color: theme.text,
+                    fontFamily: "alanRegular",
+                    fontSize: 15,
+                  }}
+                >
+                  Friends
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
 
         {relationshipStatus === "incoming_pending" ? (
   <View
@@ -504,8 +568,8 @@ const handleOpenChat = async () => {
       </View>
     </Pressable>
   </View>
-) : (
-  <Pressable
+  ) : relationshipStatus === "friend" ? null : (
+    <Pressable
     disabled={
       sendingRequest ||
       relationshipStatus === "friend" ||
@@ -566,80 +630,87 @@ const handleOpenChat = async () => {
 )}
 
         {relationshipStatus === "friend" ? (
-  <Pressable
-    onPress={handleSeeOnMap}
-    style={({ pressed }) => ({
+  <View
+    style={{
+      flexDirection: "row",
+      width: "100%",
+      gap: 12,
       marginTop: 10,
-      paddingHorizontal: 22,
-      paddingVertical: 10,
-      borderRadius: 20,
-      backgroundColor: theme.text,
-      opacity: pressed ? 0.7 : 1,
-    })}
+    }}
   >
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-      }}
+    <Pressable
+      onPress={handleSeeOnMap}
+      style={({ pressed }) => ({
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 20,
+        backgroundColor: theme.text,
+        opacity: pressed ? 0.7 : 1,
+      })}
     >
-      <Ionicons
-        name="map-outline"
-        size={18}
-        color={theme.background}
-      />
-
-      <Text
+      <View
         style={{
-          color: theme.background,
-          fontFamily: "alanRegular",
-          fontSize: 15,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
         }}
       >
-        See on map
-      </Text>
-    </View>
-  </Pressable>
-) : null}
+        <Ionicons
+          name="map-outline"
+          size={18}
+          color={theme.background}
+        />
 
-{relationshipStatus === "friend" ? (
-  <Pressable
-    onPress={handleOpenChat}
-    style={({ pressed }) => ({
-      marginTop: 10,
-      paddingHorizontal: 22,
-      paddingVertical: 10,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: theme.text,
-      opacity: pressed ? 0.65 : 1,
-    })}
-  >
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-      }}
+        <Text
+          style={{
+            color: theme.background,
+            fontFamily: "alanRegular",
+            fontSize: 15,
+          }}
+        >
+          See on map
+        </Text>
+      </View>
+    </Pressable>
+
+    <Pressable
+      onPress={handleOpenChat}
+      style={({ pressed }) => ({
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: theme.text,
+        opacity: pressed ? 0.65 : 1,
+      })}
     >
-      <Ionicons
-        name="chatbubble-outline"
-        size={18}
-        color={theme.text}
-      />
-
-      <Text
+      <View
         style={{
-          color: theme.text,
-          fontFamily: "alanRegular",
-          fontSize: 15,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
         }}
       >
-        Chat
-      </Text>
-    </View>
-  </Pressable>
+        <Ionicons
+          name="chatbubble-outline"
+          size={18}
+          color={theme.text}
+        />
+
+        <Text
+          style={{
+            color: theme.text,
+            fontFamily: "alanRegular",
+            fontSize: 15,
+          }}
+        >
+          Chat
+        </Text>
+      </View>
+    </Pressable>
+  </View>
 ) : null}
 
         <Text

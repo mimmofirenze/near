@@ -123,7 +123,14 @@ export default function ProfileScreen() {
         >
           Profile
         </Text>
-        <View style={styles.topBar}>
+        <View
+          style={[
+            styles.topBar,
+            {
+              justifyContent: "center",
+            },
+          ]}
+        >
           <Pressable
             style={({ pressed }) => [
               styles.button,
@@ -141,28 +148,76 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        <Image
-          source={
-            profile?.avatar_url
-              ? { uri: profile.avatar_url }
-              : defaultAvatar
-          }
-          style={styles.profileImage}
-        />
+        <View
+  style={{
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 10,
+    marginBottom: 18,
+  }}
+>
+  <Image
+    source={
+      profile?.avatar_url
+        ? { uri: profile.avatar_url }
+        : defaultAvatar
+    }
+    style={[
+      styles.profileImage,
+      {
+        marginRight: 22,
+      },
+    ]}
+  />
 
-        <View style={styles.nameRow}>
-          <Text style={[styles.name, { color: theme.text }]}>
-            {profile?.first_name ?? (loading ? "Loading..." : "")}
-          </Text>
+  <View
+    style={{
+      flex: 1,
+      alignItems: "flex-start",
+    }}
+  >
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      <Text
+        style={[
+          styles.name,
+          {
+            color: theme.text,
+          },
+        ]}
+      >
+        {profile?.first_name ??
+          (loading ? "Loading..." : "")}
+      </Text>
 
-          <Text style={styles.mainFlag}>
-            {countryCodeToFlag(profile?.country_code)}
+      <Text style={styles.mainFlag}>
+            {countryCodeToFlag(
+              profile?.country_code
+            )}
           </Text>
         </View>
 
-        <Text style={[styles.username, { color: theme.text }]}>
-          {profile?.username ? `ID: ${profile.username}` : ""}
+        <Text
+          style={[
+            styles.username,
+            {
+              color: theme.text,
+              marginTop: 4,
+            },
+          ]}
+        >
+          {profile?.username
+            ? `ID: ${profile.username}`
+            : ""}
         </Text>
+      </View>
+    </View>
 
         {profileError ? (
           <Text style={[styles.bio, { color: theme.text }]}>

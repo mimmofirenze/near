@@ -2,6 +2,47 @@ import { supabase } from "../lib/supabase";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 
+function normalizeFirstName(name: string) {
+  const clean = name.trim();
+
+  if (!clean) return clean;
+
+  return (
+    clean.charAt(0).toUpperCase() +
+    clean.slice(1).toLowerCase()
+  );
+}
+
+async function normalizeProviderFirstName(
+  userId: string
+) {
+  const { data: profile, error } =
+    await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", userId)
+      .maybeSingle();
+
+  if (error || !profile?.first_name) {
+    return;
+  }
+
+  const normalized = normalizeFirstName(
+    profile.first_name
+  );
+
+  if (normalized === profile.first_name) {
+    return;
+  }
+
+  await supabase
+    .from("profiles")
+    .update({
+      first_name: normalized,
+    })
+    .eq("id", userId);
+}
+
 async function syncSocialFirstName() {
   const {
     data: { user },
@@ -30,7 +71,7 @@ async function syncSocialFirstName() {
   const { error: profileError } = await supabase
     .from("profiles")
     .update({
-      first_name: firstName,
+      first_name: normalizeFirstName(firstName),
     })
     .eq("id", user.id);
 
