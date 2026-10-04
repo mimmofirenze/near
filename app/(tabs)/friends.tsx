@@ -141,7 +141,9 @@ export default function FriendsScreen() {
 
 useEffect(() => {
   const channel = supabase
-    .channel("friends-screen-realtime")
+    .channel(
+      `friends-screen-realtime-${Date.now()}`
+    )
     .on(
       "postgres_changes",
       {

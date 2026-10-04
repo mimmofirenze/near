@@ -41,6 +41,8 @@ import {
   getUserLastSeenLocation,
 } from "../../utils/location";
 
+import { openOrCreateDirectConversation } from "../../utils/chat";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -288,6 +290,22 @@ const handleSeeOnMap = () => {
       friendId: id,
     },
   });
+};
+
+const handleOpenChat = async () => {
+  if (!id) return;
+
+  const { conversationId, error } =
+    await openOrCreateDirectConversation(id);
+
+  if (error || !conversationId) {
+    setErrorMessage(
+      error?.message ?? "Could not open chat."
+    );
+    return;
+  }
+
+  router.push(`/chat/${conversationId}`);
 };
 
   const memberSince = profile?.created_at
@@ -580,6 +598,45 @@ const handleSeeOnMap = () => {
         }}
       >
         See on map
+      </Text>
+    </View>
+  </Pressable>
+) : null}
+
+{relationshipStatus === "friend" ? (
+  <Pressable
+    onPress={handleOpenChat}
+    style={({ pressed }) => ({
+      marginTop: 10,
+      paddingHorizontal: 22,
+      paddingVertical: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.text,
+      opacity: pressed ? 0.65 : 1,
+    })}
+  >
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      <Ionicons
+        name="chatbubble-outline"
+        size={18}
+        color={theme.text}
+      />
+
+      <Text
+        style={{
+          color: theme.text,
+          fontFamily: "alanRegular",
+          fontSize: 15,
+        }}
+      >
+        Chat
       </Text>
     </View>
   </Pressable>
