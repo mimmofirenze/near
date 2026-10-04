@@ -22,6 +22,17 @@ function RootNavigator() {
     const data =
       response.notification.request.content.data;
 
+      if (
+        data?.type === "chat_message" &&
+        typeof data.conversationId === "string"
+      ) {
+        router.push(
+          `/chat/${data.conversationId}`
+        );
+
+        return;
+      }
+
     if (
       (data?.type === "friend_request" ||
         data?.type === "friend_request_accepted") &&
