@@ -204,7 +204,7 @@ export default function ChatsScreen() {
         <Text
             style={[
             styles.title,
-            { color: theme.text },
+            { color: theme.text, marginBottom: 20 },
             ]}
         >
             Chats

@@ -138,7 +138,7 @@ export default function AuthLoading({
           },
         ]}
       >
-        Putting you on the map.
+        Stay close. Stay Near.
       </Animated.Text>
     </Animated.View>
   );
