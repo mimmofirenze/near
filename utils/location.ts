@@ -259,10 +259,10 @@ export async function startBackgroundLocationTracking() {
         accuracy: Location.Accuracy.Balanced,
 
         // Allow location updates without requiring a minimum movement distance.
-        distanceInterval: 0,
+        distanceInterval: 100,
 
         // Primarily used by Android.
-        timeInterval: 120_000,
+        timeInterval: 300_000,
 
         // iOS can pause tracking when it believes movement stopped.
         pausesUpdatesAutomatically: false,
