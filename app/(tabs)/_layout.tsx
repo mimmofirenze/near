@@ -75,6 +75,7 @@ useEffect(() => {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: "fade",
         tabBarShowLabel: false,
 
         sceneStyle: {

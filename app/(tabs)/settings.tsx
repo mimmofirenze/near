@@ -29,6 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles } from "../../styles/settingsStyles";
 import { signOut } from "../../utils/auth";
+import { supabase } from "../../lib/supabase";
 
 import {
   ThemePreference,
@@ -185,28 +186,65 @@ export default function Settings() {
     );
   };
 
-  const confirmDeleteAccount = () => {
+const deleteAccount = async () => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      Alert.alert("Error", "You are not logged in.");
+      return;
+    }
+
+    const { data, error } =
+      await supabase.functions.invoke("delete-account");
+
+    if (error) {
+      console.error("Delete account error:", error);
+
+      Alert.alert(
+        "Error",
+        "We couldn't delete your account. Please try again."
+      );
+
+      return;
+    }
+
+    console.log("Account deleted:", data);
+
+    // Clear local Supabase session
+    await supabase.auth.signOut();
+    router.replace("/");
+
+    // Your auth listener / router should send them back to login.
+  } catch (error) {
+    console.error("Delete account failed:", error);
+
     Alert.alert(
-      "Delete account",
-      "This will permanently delete your Near account and all associated data. This action cannot be undone.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete account",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              "Coming soon",
-              "Account deletion will be connected to the backend soon."
-            );
-          },
-        },
-      ]
+      "Error",
+      "We couldn't delete your account. Please try again."
     );
-  };
+  }
+};
+
+const confirmDeleteAccount = () => {
+  Alert.alert(
+    "Delete account",
+    "This will permanently delete your Near account and all associated data. This action cannot be undone.",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: deleteAccount,
+      },
+    ]
+  );
+};
 
   return (
     <SafeAreaView

@@ -37,7 +37,7 @@ let authFlowInProgress = false;
 
 export default function LoginScreen() {
 
-  const { start: startTransition, cancel: cancelTransition } =
+  const { start: startTransition, cancel: cancelTransition, markHomeReady } =
   useLoginTransition();
 
 const { theme, colorScheme } =
@@ -58,6 +58,7 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
+
 
 useFocusEffect(
   useCallback(() => {
@@ -88,6 +89,10 @@ useFocusEffect(
     checkSession();
   }, [])
 );
+
+useEffect(() => {
+  if (!checkingSession) markHomeReady();
+}, [checkingSession, markHomeReady]);
 
 const handleLogin = async () => {
   const newEmailError = validateEmail(email);
@@ -279,8 +284,7 @@ const handleLogin = async () => {
             <Text
               style={styles.linkText}
               onPress={() => {
-                console.log("Forgot password");
-                // router.push("/forgot-password");
+                router.push('/forgot-password');
               }}
             >
               here

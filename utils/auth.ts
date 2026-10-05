@@ -50,17 +50,54 @@ async function syncSocialFirstName() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    console.log("SOCIAL PROFILE SYNC ERROR:", error?.message);
+    console.log(
+      "SOCIAL PROFILE SYNC ERROR:",
+      error?.message
+    );
     return;
   }
 
+  // First check the Near profile.
+  // If the user already has a name, NEVER overwrite it
+  // with Google/Facebook metadata.
+  const {
+    data: profile,
+    error: profileLoadError,
+  } = await supabase
+    .from("profiles")
+    .select("first_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileLoadError) {
+    console.log(
+      "PROFILE LOAD ERROR:",
+      profileLoadError.message
+    );
+    return;
+  }
+
+  if (profile?.first_name?.trim()) {
+    console.log(
+      "Profile already has a first name:",
+      profile.first_name
+    );
+    return;
+  }
+
+  // Only use provider metadata when the profile
+  // doesn't have a name yet.
   const metadata = user.user_metadata;
 
   const firstName =
     metadata?.given_name?.trim() ||
     metadata?.first_name?.trim() ||
-    metadata?.full_name?.trim()?.split(/\s+/)[0] ||
-    metadata?.name?.trim()?.split(/\s+/)[0] ||
+    metadata?.full_name
+      ?.trim()
+      ?.split(/\s+/)[0] ||
+    metadata?.name
+      ?.trim()
+      ?.split(/\s+/)[0] ||
     "";
 
   if (!firstName) {
@@ -68,17 +105,19 @@ async function syncSocialFirstName() {
     return;
   }
 
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({
-      first_name: normalizeFirstName(firstName),
-    })
-    .eq("id", user.id);
+  const { error: updateError } =
+    await supabase
+      .from("profiles")
+      .update({
+        first_name:
+          normalizeFirstName(firstName),
+      })
+      .eq("id", user.id);
 
-  if (profileError) {
+  if (updateError) {
     console.log(
       "SOCIAL PROFILE UPDATE ERROR:",
-      profileError.message
+      updateError.message
     );
   }
 }

@@ -26,10 +26,14 @@ import {
 
 import { useAppTheme } from "../contexts/themeContext";
 
+import { useLoginTransition } from "../contexts/loginTransitionContext";
+
 export default function RegisterScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { start: startTransition } = useLoginTransition();
 
   const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); //roba dell'occhio
@@ -100,6 +104,7 @@ export default function RegisterScreen() {
       console.log("Session:", data.session);
 
       if (data.session) {
+        startTransition();
         router.replace("/(tabs)/home");
       } else {
         setRegisterError(
@@ -125,7 +130,7 @@ export default function RegisterScreen() {
       setRegisterError(error.message);
       return;
     }
-
+    startTransition();
     router.replace("/(tabs)/home");
   } catch (error) {
     console.error("Google login error:", error);
@@ -147,7 +152,7 @@ const handleFacebookLogin = async () => {
       setRegisterError(error.message);
       return;
     }
-
+    startTransition();
     router.replace("/(tabs)/home");
   } catch (error) {
     console.error(

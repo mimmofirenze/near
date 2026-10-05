@@ -13,6 +13,10 @@ import {
 
 import { LoginTransitionProvider } from "../contexts/loginTransitionContext";
 
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync();
+
 function RootNavigator() {
   const { theme, colorScheme } =
     useAppTheme();
@@ -98,6 +102,10 @@ export default function RootLayout() {
     alanRegular: require("../assets/fonts/AlanSans-Regular.ttf"),
     alanSemiBold: require("../assets/fonts/AlanSans-SemiBold.ttf"),
   });
+
+  useEffect(() => {
+  if (fontsLoaded) SplashScreen.hideAsync();
+}, [fontsLoaded]);
 
   if (!fontsLoaded) {
     return null;

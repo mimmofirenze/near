@@ -9,18 +9,23 @@ import { useAppTheme } from "../contexts/themeContext";
 const MAX_WAIT_AFTER_INTRO_MS = 8000;
 
 type Props = {
-  canExit: boolean; // true once Home has finished loading
+  canExit: boolean; // true once the screen underneath has finished loading
   onDone: () => void; // called after the fade-out finishes
+  holdMs?: number; // how long the finished logo + tagline stay on screen
 };
 
 /**
  * Plays as an overlay on top of the whole app.
  *   0-700 ms     logo fades in and settles
  *   700-1300 ms  tagline fades in and rises
- *   1300-2600 ms hold
+ *   next holdMs  hold (default 1300 ms)
  *   then         waits until canExit is true, and fades out over 400 ms
  */
-export default function AuthLoading({ canExit, onDone }: Props) {
+export default function AuthLoading({
+  canExit,
+  onDone,
+  holdMs = 1300,
+}: Props) {
   const { theme, colorScheme } = useAppTheme();
   const logo = Logos[colorScheme ?? "light"];
 
@@ -68,7 +73,7 @@ export default function AuthLoading({ canExit, onDone }: Props) {
           useNativeDriver: true,
         }),
       ]),
-      Animated.delay(1300),
+      Animated.delay(holdMs),
     ]);
 
     intro.start(({ finished }) => {
@@ -76,7 +81,7 @@ export default function AuthLoading({ canExit, onDone }: Props) {
     });
 
     return () => intro.stop();
-  }, [logoOpacity, logoScale, textOpacity, textShift]);
+  }, [logoOpacity, logoScale, textOpacity, textShift, holdMs]);
 
   // 2) Safety net
   useEffect(() => {
@@ -133,7 +138,7 @@ export default function AuthLoading({ canExit, onDone }: Props) {
           },
         ]}
       >
-        Almost there. Stay Near.
+        Putting you on the map.
       </Animated.Text>
     </Animated.View>
   );
