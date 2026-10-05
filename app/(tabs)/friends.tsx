@@ -35,6 +35,7 @@ import { countryCodeToFlag } from "../../utils/countries";
 import { useAppTheme } from "../../contexts/themeContext";
 
 import { supabase } from "../../lib/supabase";
+import Skeleton from "../../components/Skeleton";
 
 type UserProfile = {
   id: string;
@@ -337,6 +338,49 @@ useEffect(() => {
     </View>
   );
 
+  const FriendSkeleton = () => (
+  <View
+    style={[
+      styles.friendCard,
+      {
+        backgroundColor:
+          colorScheme === "dark"
+            ? "#22212D"
+            : "#FFFCF3",
+      },
+    ]}
+  >
+    <Skeleton
+      style={styles.avatar}
+    />
+
+    <View style={styles.friendInfo}>
+      <View style={styles.nameRow}>
+        <Skeleton
+          width={120}
+          height={18}
+          borderRadius={5}
+        />
+      </View>
+
+      <Skeleton
+        width={90}
+        height={14}
+        borderRadius={5}
+        style={{
+          marginTop: 6,
+        }}
+      />
+    </View>
+
+    <Skeleton
+      width={58}
+      height={36}
+      borderRadius={18}
+    />
+  </View>
+);
+
   return (
     <SafeAreaView
       style={[
@@ -455,6 +499,12 @@ useEffect(() => {
                       <Pressable
                         style={({ pressed }) => [
                           styles.viewButton,
+                          {
+                            borderColor:
+                              colorScheme === "dark"
+                                ? "#8B8998"
+                                : "#333333",
+                          },
                           pressed && styles.pressed,
                         ]}
                         onPress={() =>
@@ -464,7 +514,18 @@ useEffect(() => {
                           })
                         }
                       >
-                        <Text style={styles.viewButtonText}>
+                        <Text 
+                        style={[
+                          styles.viewButtonText,
+                          {
+                            color: theme.text,
+                            borderColor:
+                              colorScheme === "dark"
+                                ? "#8B8998"
+                                : "#111111",
+                          },
+                        ]}
+                        >
                           View
                         </Text>
                       </Pressable>
@@ -651,14 +712,12 @@ useEffect(() => {
                 </Text>
 
                 {loadingFriends ? (
-                  <Text
-                    style={[
-                      styles.emptyText,
-                      { color: theme.text },
-                    ]}
-                  >
-                    Loading friends...
-                  </Text>
+                  <View style={{ gap: 10 }}>
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                    <FriendSkeleton />
+                  </View>
                 ) : friends.length === 0 ? (
                   <Text
                     style={[

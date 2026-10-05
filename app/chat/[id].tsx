@@ -43,6 +43,8 @@ import {
   setActiveConversationId,
 } from "../../utils/notifications";
 
+import Skeleton from "../../components/Skeleton";
+
 const PAGE_SIZE = 40;
 
 type ChatListItem =
@@ -501,27 +503,173 @@ useEffect(() => {
     setLoadingMore(false);
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: theme.background,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+if (loading) {
+  return (
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{
+        flex: 1,
+        backgroundColor: theme.background,
+      }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={
+          Platform.OS === "ios"
+            ? "padding"
+            : "height"
+        }
       >
-        <Text
+        {/* HEADER */}
+        <View
           style={{
-            color: theme.text,
-            fontFamily: "alanRegular",
+            height: 64,
+            paddingHorizontal: 16,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            borderBottomWidth: 1,
+            borderBottomColor:
+              "rgba(128,128,128,0.15)",
           }}
         >
-          Loading chat...
-        </Text>
-      </SafeAreaView>
-    );
-  }
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+          >
+            <Ionicons
+              name="arrow-back-outline"
+              size={28}
+              color={theme.text}
+            />
+          </Pressable>
+
+          <Skeleton
+            width={42}
+            height={42}
+            borderRadius={21}
+          />
+
+          <View style={{ gap: 5 }}>
+            <Skeleton
+              width={110}
+              height={18}
+              borderRadius={5}
+            />
+
+            <Skeleton
+              width={75}
+              height={13}
+              borderRadius={5}
+            />
+          </View>
+        </View>
+
+        {/* MESSAGES */}
+        <View
+          style={{
+            flex: 1,
+            padding: 14,
+            justifyContent: "flex-end",
+            gap: 8,
+          }}
+        >
+          <Skeleton
+            width="48%"
+            height={42}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-start",
+            }}
+          />
+
+          <Skeleton
+            width="65%"
+            height={58}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-end",
+            }}
+          />
+
+          <Skeleton
+            width="38%"
+            height={42}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-end",
+            }}
+          />
+
+          <Skeleton
+            width="70%"
+            height={74}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-start",
+            }}
+          />
+
+          <Skeleton
+            width="52%"
+            height={42}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-start",
+            }}
+          />
+
+          <Skeleton
+            width="60%"
+            height={58}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-end",
+            }}
+          />
+
+          <Skeleton
+            width="36%"
+            height={42}
+            borderRadius={18}
+            style={{
+              alignSelf: "flex-start",
+            }}
+          />
+        </View>
+
+        {/* MESSAGE INPUT */}
+        <View
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            flexDirection: "row",
+            alignItems: "flex-end",
+            gap: 10,
+            borderTopWidth: 1,
+            borderTopColor:
+              "rgba(128,128,128,0.15)",
+          }}
+        >
+          <Skeleton
+            width="100%"
+            height={44}
+            borderRadius={20}
+            style={{
+              flex: 1,
+            }}
+          />
+
+          <Skeleton
+            width={44}
+            height={44}
+            borderRadius={22}
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView

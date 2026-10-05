@@ -28,6 +28,7 @@ import {
 import { useAppTheme } from "../contexts/themeContext";
 
 import { Ionicons } from "@expo/vector-icons";
+import Skeleton from "../components/Skeleton";
 
 function countryCodeToFlag(countryCode: string) {
   if (countryCode.length !== 2) {
@@ -258,22 +259,163 @@ export default function EditProfileScreen() {
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: theme.background,
-          justifyContent: "center",
-          alignItems: "center",
+if (loading) {
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme.background,
+      }}
+    >
+      <ScrollView
+        contentContainerStyle={{
+          padding: 24,
+          paddingBottom: 50,
         }}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={{ color: theme.text }}>
-          Loading...
-        </Text>
-      </SafeAreaView>
-    );
-  }
+        <View style={{ gap: 16 }}>
+          {/* HEADER */}
+          <View
+            style={{
+              position: "relative",
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 20,
+              minHeight: 40,
+            }}
+          >
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={12}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 2,
+                width: 36,
+                height: 36,
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2,
+              }}
+            >
+              <Ionicons
+                name="arrow-back-outline"
+                size={30}
+                color={theme.text}
+              />
+            </Pressable>
+
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 28,
+                textAlign: "center",
+                fontFamily: "alanRegular",
+              }}
+            >
+              Edit profile
+            </Text>
+          </View>
+
+          {/* PROFILE PICTURE */}
+          <Skeleton
+            width={120}
+            height={120}
+            borderRadius={60}
+            style={{
+              alignSelf: "center",
+            }}
+          />
+
+          <Skeleton
+            width={150}
+            height={18}
+            borderRadius={5}
+            style={{
+              alignSelf: "center",
+              marginTop: 10,
+              marginBottom: 20,
+            }}
+          />
+
+          {/* FIRST NAME */}
+          <Skeleton
+            width="100%"
+            height={50}
+            borderRadius={12}
+          />
+
+          {/* USERNAME */}
+          <Skeleton
+            width="100%"
+            height={50}
+            borderRadius={12}
+          />
+
+          {/* COUNTRY */}
+          <Skeleton
+            width="100%"
+            height={50}
+            borderRadius={12}
+          />
+
+          {/* COUNTRIES VISITED */}
+          <Skeleton
+            width={130}
+            height={18}
+            borderRadius={5}
+          />
+
+          <Skeleton
+            width="100%"
+            height={50}
+            borderRadius={12}
+          />
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+            }}
+          >
+            <Skeleton
+              width={65}
+              height={36}
+              borderRadius={20}
+            />
+
+            <Skeleton
+              width={65}
+              height={36}
+              borderRadius={20}
+            />
+
+            <Skeleton
+              width={65}
+              height={36}
+              borderRadius={20}
+            />
+          </View>
+
+          {/* BIO */}
+          <Skeleton
+            width="100%"
+            height={100}
+            borderRadius={12}
+          />
+
+          {/* SAVE BUTTON */}
+          <Skeleton
+            width="100%"
+            height={50}
+            borderRadius={12}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView

@@ -37,6 +37,8 @@ import { countryCodeToFlag } from "../../utils/countries";
 
 import { styles } from "../../styles/chatsStyles";
 
+import Skeleton from "../../components/Skeleton";
+
 function formatChatTime(
   timestamp: string | null
 ) {
@@ -190,6 +192,41 @@ export default function ChatsScreen() {
   };
 }, [conversations]);
 
+const ChatSkeleton = () => (
+  <View style={styles.chatRow}>
+    <Skeleton
+      style={styles.avatar}
+    />
+
+    <View style={styles.chatInfo}>
+      <View style={styles.nameRow}>
+        <Skeleton
+          width={120}
+          height={18}
+          borderRadius={5}
+        />
+      </View>
+
+      <Skeleton
+        width="75%"
+        height={14}
+        borderRadius={5}
+        style={{
+          marginTop: 7,
+        }}
+      />
+    </View>
+
+    <View style={styles.rightSection}>
+      <Skeleton
+        width={38}
+        height={12}
+        borderRadius={5}
+      />
+    </View>
+  </View>
+);
+
   return (
     <SafeAreaView
       edges={["top"]}
@@ -232,46 +269,55 @@ export default function ChatsScreen() {
         contentContainerStyle={
             styles.listContent
         }
-        ListEmptyComponent={
-          !loading ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                paddingBottom: 80,
-                gap: 10,
-              }}
-            >
-              <Ionicons
-                name="chatbubbles-outline"
-                size={54}
-                color="#888"
-              />
+ListEmptyComponent={
+  loading ? (
+    <View>
+      <ChatSkeleton />
+      <ChatSkeleton />
+      <ChatSkeleton />
+      <ChatSkeleton />
+      <ChatSkeleton />
+      <ChatSkeleton />
+    </View>
+  ) : (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingBottom: 80,
+        gap: 10,
+      }}
+    >
+      <Ionicons
+        name="chatbubbles-outline"
+        size={54}
+        color="#888"
+      />
 
-              <Text
-                style={{
-                  color: theme.text,
-                  fontFamily: "alanRegular",
-                  fontSize: 19,
-                }}
-              >
-                No chats yet
-              </Text>
+      <Text
+        style={{
+          color: theme.text,
+          fontFamily: "alanRegular",
+          fontSize: 19,
+        }}
+      >
+        No chats yet
+      </Text>
 
-              <Text
-                style={{
-                  color: "#888",
-                  fontFamily: "alanRegular",
-                  textAlign: "center",
-                }}
-              >
-                Open a friend's profile and
-                start a conversation.
-              </Text>
-            </View>
-          ) : null
-        }
+      <Text
+        style={{
+          color: "#888",
+          fontFamily: "alanRegular",
+          textAlign: "center",
+        }}
+      >
+        Open a friend's profile and
+        start a conversation.
+      </Text>
+    </View>
+  )
+}
         renderItem={({ item }) => {
           const unread =
             Number(item.unread_count) > 0;

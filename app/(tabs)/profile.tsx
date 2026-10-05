@@ -19,6 +19,7 @@ import {
 import { countryCodeToFlag } from "../../utils/countries";
 
 import { useAppTheme } from "../../contexts/themeContext";
+import Skeleton from "../../components/Skeleton";
 
 type Profile = {
   id: string;
@@ -148,109 +149,290 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        <View
-  style={{
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    marginTop: 10,
-    marginBottom: 18,
-  }}
->
-  <Image
-    source={
-      profile?.avatar_url
-        ? { uri: profile.avatar_url }
-        : defaultAvatar
-    }
-    style={[
-      styles.profileImage,
-      {
-        marginRight: 22,
-      },
-    ]}
-  />
-
-  <View
-    style={{
-      flex: 1,
-      alignItems: "flex-start",
-    }}
-  >
+{loading && !profile ? (
+  <>
+    {/* Same layout as real avatar/name section */}
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        width: "100%",
+        marginTop: 10,
+        marginBottom: 18,
       }}
     >
-      <Text
+      <Skeleton
         style={[
-          styles.name,
+          styles.profileImage,
           {
-            color: theme.text,
+            marginRight: 22,
           },
         ]}
+      />
+
+      <View
+        style={{
+          flex: 1,
+          alignItems: "flex-start",
+        }}
       >
-        {profile?.first_name ??
-          (loading ? "Loading..." : "")}
-      </Text>
+        <Skeleton
+          width={140}
+          height={24}
+          borderRadius={6}
+        />
 
-      <Text style={styles.mainFlag}>
-            {countryCodeToFlag(
-              profile?.country_code
-            )}
-          </Text>
-        </View>
-
-        <Text
-          style={[
-            styles.username,
-            {
-              color: theme.text,
-              marginTop: 4,
-            },
-          ]}
-        >
-          {profile?.username
-            ? `ID: ${profile.username}`
-            : ""}
-        </Text>
+        <Skeleton
+          width={100}
+          height={16}
+          borderRadius={5}
+          style={{
+            marginTop: 4,
+          }}
+        />
       </View>
     </View>
 
-        {profileError ? (
-          <Text style={[styles.bio, { color: theme.text }]}>
-            {profileError}
-          </Text>
-        ) : (
-          <Text style={[styles.bio, { color: theme.text }]}>
-            {profile?.bio || "No bio yet"}
-          </Text>
-        )}
+    {/* Bio - same area */}
+    <Skeleton
+      width="75%"
+      height={18}
+      borderRadius={5}
+    />
 
-        <View style={styles.countriesSection}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            {visitedCountries.length} Countries visited:
-          </Text>
+    {/* Countries - same spacing */}
+    <View style={styles.countriesSection}>
+      <Skeleton
+        width={155}
+        height={20}
+        borderRadius={5}
+      />
 
-          <View style={styles.flagsRow}>
-            {visitedCountries.map((countryCode) => (
-              <View key={countryCode} style={styles.flagContainer}>
-                <Text style={styles.flag}>
-                  {countryCodeToFlag(countryCode)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
+      <View
+        style={[
+          styles.flagsRow,
+          {
+            marginTop: 8,
+          },
+        ]}
+      >
+        <Skeleton
+          width={34}
+          height={26}
+          borderRadius={5}
+        />
 
-        <Text style={[styles.memberSince, { color: theme.text }]}>
-          {memberSince
-            ? `Near member since ${memberSince}`
-            : "Near member since"}
-        </Text>
+        <Skeleton
+          width={34}
+          height={26}
+          borderRadius={5}
+        />
+
+        <Skeleton
+          width={34}
+          height={26}
+          borderRadius={5}
+        />
       </View>
+    </View>
+
+    {/* Member since */}
+    <Skeleton
+      width={175}
+      height={16}
+      borderRadius={5}
+      style={{
+        marginTop: 20,
+      }}
+    />
+  </>
+) : (
+            <>
+              {/* AVATAR + NAME + USERNAME */}
+
+              <View
+                style={{
+                  flexDirection:
+                    "row",
+                  alignItems:
+                    "center",
+                  width: "100%",
+                  marginTop: 10,
+                  marginBottom: 18,
+                }}
+              >
+                <Image
+                  source={
+                    profile?.avatar_url
+                      ? {
+                          uri: profile.avatar_url,
+                        }
+                      : defaultAvatar
+                  }
+                  style={[
+                    styles.profileImage,
+                    {
+                      marginRight: 22,
+                    },
+                  ]}
+                />
+
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems:
+                      "flex-start",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection:
+                        "row",
+                      alignItems:
+                        "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.name,
+                        {
+                          color:
+                            theme.text,
+                        },
+                      ]}
+                    >
+                      {profile?.first_name ??
+                        ""}
+                    </Text>
+
+                    <Text
+                      style={
+                        styles.mainFlag
+                      }
+                    >
+                      {countryCodeToFlag(
+                        profile?.country_code
+                      )}
+                    </Text>
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.username,
+                      {
+                        color:
+                          theme.text,
+                        marginTop: 4,
+                      },
+                    ]}
+                  >
+                    {profile?.username
+                      ? `ID: ${profile.username}`
+                      : ""}
+                  </Text>
+                </View>
+              </View>
+
+              {/* BIO */}
+
+              {profileError ? (
+                <Text
+                  style={[
+                    styles.bio,
+                    {
+                      color:
+                        theme.text,
+                    },
+                  ]}
+                >
+                  {profileError}
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    styles.bio,
+                    {
+                      color:
+                        theme.text,
+                    },
+                  ]}
+                >
+                  {profile?.bio ||
+                    "No bio yet"}
+                </Text>
+              )}
+
+              {/* COUNTRIES */}
+
+              <View
+                style={
+                  styles.countriesSection
+                }
+              >
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color:
+                        theme.text,
+                    },
+                  ]}
+                >
+                  {
+                    visitedCountries.length
+                  }{" "}
+                  Countries visited:
+                </Text>
+
+                <View
+                  style={
+                    styles.flagsRow
+                  }
+                >
+                  {visitedCountries.map(
+                    (countryCode) => (
+                      <View
+                        key={
+                          countryCode
+                        }
+                        style={
+                          styles.flagContainer
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.flag
+                          }
+                        >
+                          {countryCodeToFlag(
+                            countryCode
+                          )}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                </View>
+              </View>
+
+              {/* MEMBER SINCE */}
+
+              <Text
+                style={[
+                  styles.memberSince,
+                  {
+                    color:
+                      theme.text,
+                  },
+                ]}
+              >
+                {memberSince
+                  ? `Near member since ${memberSince}`
+                  : "Near member since"}
+              </Text>
+            </>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
