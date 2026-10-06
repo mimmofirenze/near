@@ -45,6 +45,13 @@ import {
 
 import Skeleton from "../../components/Skeleton";
 
+import {
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+
+import Swipeable from
+  "react-native-gesture-handler/ReanimatedSwipeable";
+
 const PAGE_SIZE = 40;
 
 type ChatListItem =
@@ -101,6 +108,49 @@ function formatDateLabel(date: Date) {
   });
 }
 
+function SwipeToReply({
+  children,
+  onReply,
+}: {
+  children: any;
+  onReply: () => void;
+}) {
+  const swipeableRef = useRef<any>(null);
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      friction={1.5}
+      rightThreshold={45}
+      overshootRight={false}
+      renderLeftActions={() => (
+        <View
+          style={{
+            width: 64,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Ionicons
+            name="arrow-undo-outline"
+            size={24}
+            color="#2563EB"
+          />
+        </View>
+      )}
+      onSwipeableOpen={() => {
+        onReply();
+
+        requestAnimationFrame(() => {
+          swipeableRef.current?.close();
+        });
+      }}
+    >
+      {children}
+    </Swipeable>
+  );
+}
+
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{
     id: string;
@@ -135,6 +185,9 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [loadingMore, setLoadingMore] =
     useState(false);
+
+const [replyingToMessage, setReplyingToMessage] =
+  useState<ChatMessage | null>(null);
 
 const [friendTyping, setFriendTyping] =
   useState(false);
@@ -420,7 +473,8 @@ useEffect(() => {
     const { message, error } =
       await sendMessage(
         id,
-        messageText
+        messageText,
+        replyingToMessage?.id ?? null
       );
 
     setSending(false);
@@ -438,6 +492,7 @@ useEffect(() => {
 
     if (message) {
       addMessage(message);
+      setReplyingToMessage(null);
       await markConversationRead(id);
     }
     if (currentUserId) {
@@ -672,6 +727,7 @@ if (loading) {
 }
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaView
       edges={["top", "bottom"]}
       style={{
@@ -837,7 +893,12 @@ if (loading) {
   const mine =
     message.sender_id === currentUserId;
 
-  return (
+return (
+  <SwipeToReply
+    onReply={() =>
+      setReplyingToMessage(message)
+    }
+  >
     <View
       style={{
         alignSelf: mine
@@ -857,6 +918,58 @@ if (loading) {
         borderRadius: 18,
       }}
     >
+
+      {message.reply_to ? (
+        <View
+          style={{
+            marginBottom: 7,
+            paddingHorizontal: 10,
+            paddingVertical: 7,
+            borderRadius: 10,
+
+            borderLeftWidth: 3,
+            borderLeftColor: mine
+              ? "rgba(255,255,255,0.8)"
+              : "#2563EB",
+
+            backgroundColor: mine
+              ? "rgba(255,255,255,0.12)"
+              : colorScheme === "dark"
+              ? "rgba(255,255,255,0.06)"
+              : "rgba(0,0,0,0.05)",
+          }}
+        >
+          <Text
+            style={{
+              color: mine
+                ? "#FFFFFF"
+                : "#2563EB",
+              fontFamily: "alanSemiBold",
+              fontSize: 12,
+              marginBottom: 2,
+            }}
+          >
+            {message.reply_to.sender_id ===
+            currentUserId
+              ? "You"
+              : friend?.first_name ?? "User"}
+          </Text>
+
+          <Text
+            numberOfLines={2}
+            style={{
+              color: mine
+                ? "rgba(255,255,255,0.8)"
+                : theme.text,
+              opacity: mine ? 1 : 0.7,
+              fontFamily: "alanRegular",
+              fontSize: 13,
+            }}
+          >
+            {message.reply_to.body}
+          </Text>
+        </View>
+      ) : null}
       <Text
         style={{
           color: mine
@@ -890,86 +1003,147 @@ if (loading) {
         })}
       </Text>
     </View>
-  );
+  </SwipeToReply>
+);
 }}
         />
 
         <View
+  style={{
+    borderTopWidth: 1,
+    borderTopColor:
+      "rgba(128,128,128,0.15)",
+  }}
+>
+  {replyingToMessage ? (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingTop: 10,
+        gap: 12,
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          borderLeftWidth: 3,
+          borderLeftColor: "#2563EB",
+          paddingLeft: 10,
+        }}
+      >
+        <Text
           style={{
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            flexDirection: "row",
-            alignItems: "flex-end",
-            gap: 10,
-            borderTopWidth: 1,
-            borderTopColor:
-              "rgba(128,128,128,0.15)",
+            color: "#2563EB",
+            fontFamily: "alanSemiBold",
+            fontSize: 13,
           }}
         >
-          <TextInput
-            value={text}
-            onChangeText={handleTextChange}
-            placeholder="Message..."
-            placeholderTextColor="#888"
-            multiline
-            maxLength={2000}
-            style={{
-              flex: 1,
-              maxHeight: 120,
+          {replyingToMessage.sender_id ===
+          currentUserId
+            ? "Replying to yourself"
+            : `Replying to ${
+                friend?.first_name ?? "friend"
+              }`}
+        </Text>
 
-              backgroundColor:
-                colorScheme === "dark"
-                  ? "#292929"
-                  : "#EEEEEE",
+        <Text
+          numberOfLines={1}
+          style={{
+            color: theme.text,
+            opacity: 0.65,
+            fontFamily: "alanRegular",
+            fontSize: 14,
+            marginTop: 2,
+          }}
+        >
+          {replyingToMessage.body}
+        </Text>
+      </View>
 
-              color: theme.text,
+      <Pressable
+        onPress={() =>
+          setReplyingToMessage(null)
+        }
+        hitSlop={10}
+      >
+        <Ionicons
+          name="close-outline"
+          size={24}
+          color={theme.text}
+        />
+      </Pressable>
+    </View>
+  ) : null}
 
-              borderRadius: 20,
+  <View
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        flexDirection: "row",
+        alignItems: "flex-end",
+        gap: 10,
+      }}
+    >
+      <TextInput
+        value={text}
+        onChangeText={handleTextChange}
+        placeholder="Message..."
+        placeholderTextColor="#888"
+        multiline
+        maxLength={2000}
+        style={{
+          flex: 1,
+          maxHeight: 120,
 
-              paddingHorizontal: 16,
-              paddingVertical: 10,
+          backgroundColor:
+            colorScheme === "dark"
+              ? "#292929"
+              : "#EEEEEE",
 
-              fontFamily:
-                "alanRegular",
+          color: theme.text,
+          borderRadius: 20,
 
-              fontSize: 16,
-            }}
-          />
+          paddingHorizontal: 16,
+          paddingVertical: 10,
 
-          <Pressable
-            onPress={handleSend}
-            disabled={
-              !text.trim() || sending
-            }
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+          fontFamily: "alanRegular",
+          fontSize: 16,
+        }}
+      />
 
-              justifyContent:
-                "center",
-              alignItems: "center",
+      <Pressable
+        onPress={handleSend}
+        disabled={!text.trim() || sending}
+        style={({ pressed }) => ({
+          width: 44,
+          height: 44,
+          borderRadius: 22,
 
-              backgroundColor:
-                "#2563EB",
+          justifyContent: "center",
+          alignItems: "center",
 
-              opacity:
-                !text.trim() ||
-                sending
-                  ? 0.4
-                  : pressed
-                  ? 0.7
-                  : 1,
-            })}
-          >
-            <Ionicons
-              name="send"
-              size={20}
-              color="#FFFFFF"
-            />
-          </Pressable>
-        </View>
+          backgroundColor: "#2563EB",
+
+          opacity:
+            !text.trim() || sending
+              ? 0.4
+              : pressed
+              ? 0.7
+              : 1,
+        })}
+      >
+        <Ionicons
+          name="send"
+          size={20}
+          color="#FFFFFF"
+        />
+      </Pressable>
+    </View>
+  </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }

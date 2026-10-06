@@ -6,6 +6,13 @@ export type ChatMessage = {
   sender_id: string;
   body: string;
   created_at: string;
+  reply_to_message_id: string | null;
+
+  reply_to?: {
+    id: string;
+    sender_id: string;
+    body: string;
+  } | null;
 };
 
 export type ChatUser = {
@@ -38,9 +45,19 @@ export async function getMessages(
 ) {
   let query = supabase
     .from("messages")
-    .select(
-      "id, conversation_id, sender_id, body, created_at"
-    )
+        .select(`
+      id,
+      conversation_id,
+      sender_id,
+      body,
+      created_at,
+      reply_to_message_id,
+      reply_to (
+        id,
+        sender_id,
+        body
+      )
+    `)
     .eq("conversation_id", conversationId)
     .order("created_at", {
       ascending: false,
@@ -61,7 +78,8 @@ export async function getMessages(
 
 export async function sendMessage(
   conversationId: string,
-  text: string
+  text: string,
+  replyToMessageId?: string | null
 ) {
   const cleanText = text.trim();
 
@@ -92,10 +110,21 @@ export async function sendMessage(
       conversation_id: conversationId,
       sender_id: user.id,
       body: cleanText.slice(0, 2000),
+      reply_to_message_id: replyToMessageId ?? null,
     })
-    .select(
-      "id, conversation_id, sender_id, body, created_at"
-    )
+    .select(`
+      id,
+      conversation_id,
+      sender_id,
+      body,
+      created_at,
+      reply_to_message_id,
+      reply_to (
+        id,
+        sender_id,
+        body
+      )
+    `)
     .single();
 
   return {
