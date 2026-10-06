@@ -7,6 +7,8 @@ export type ChatMessage = {
   body: string;
   created_at: string;
   reply_to_message_id: string | null;
+  edited_at: string | null;
+  deleted_at: string | null;
 
   reply_to?: {
     id: string;
@@ -52,6 +54,8 @@ export async function getMessages(
       body,
       created_at,
       reply_to_message_id,
+      edited_at,
+      deleted_at,
       reply_to (
         id,
         sender_id,
@@ -119,6 +123,8 @@ export async function sendMessage(
       body,
       created_at,
       reply_to_message_id,
+      edited_at,
+      deleted_at,
       reply_to (
         id,
         sender_id,
@@ -129,6 +135,61 @@ export async function sendMessage(
 
   return {
     message: data as ChatMessage | null,
+    error,
+  };
+}
+
+export async function editMessage(
+  messageId: string,
+  text: string
+) {
+  const cleanText = text.trim();
+
+  if (!cleanText) {
+    return {
+      message: null,
+      error: new Error("Message cannot be empty."),
+    };
+  }
+
+  const editedAt = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("messages")
+    .update({
+      body: cleanText.slice(0, 2000),
+      edited_at: editedAt,
+    })
+    .eq("id", messageId)
+    .select(
+      "id, body, edited_at, deleted_at"
+    )
+    .single();
+
+  return {
+    message: data,
+    error,
+  };
+}
+
+export async function deleteMessage(
+  messageId: string
+) {
+  const deletedAt = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("messages")
+    .update({
+      deleted_at: deletedAt,
+    })
+    .eq("id", messageId)
+    .select(
+      "id, body, edited_at, deleted_at"
+    )
+    .single();
+
+  return {
+    message: data,
     error,
   };
 }

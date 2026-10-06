@@ -1,4 +1,6 @@
 import {
+  Alert,
+  Modal,
   AppState,
   FlatList,
   Image,
@@ -24,6 +26,8 @@ import { useAppTheme } from "../../contexts/themeContext";
 
 import {
   createTypingChannel,
+  deleteMessage,
+  editMessage,
   getConversationFriend,
   getMessages,
   markConversationRead,
@@ -188,6 +192,18 @@ export default function ChatScreen() {
 
 const [replyingToMessage, setReplyingToMessage] =
   useState<ChatMessage | null>(null);
+
+const [editingMessage, setEditingMessage] =
+  useState<ChatMessage | null>(null);
+
+const [messageMenuMessage, setMessageMenuMessage] =
+  useState<ChatMessage | null>(null);
+
+const [confirmingDelete, setConfirmingDelete] =
+  useState(false);
+
+const messageInputRef =
+  useRef<TextInput | null>(null);
 
 const [friendTyping, setFriendTyping] =
   useState(false);
@@ -456,12 +472,115 @@ useEffect(() => {
     };
   }, [id]);
 
+const handleMessageLongPress = (
+  message: ChatMessage
+) => {
+  if (
+    message.sender_id !== currentUserId ||
+    message.deleted_at
+  ) {
+    return;
+  }
+
+  setMessageMenuMessage(message);
+  setConfirmingDelete(false);
+};
+
+const handleDeleteMessage = async () => {
+  if (!messageMenuMessage) return;
+
+  const messageId =
+    messageMenuMessage.id;
+
+  const {
+    message: updated,
+    error,
+  } = await deleteMessage(messageId);
+
+  if (error) {
+    console.log(
+      "DELETE MESSAGE ERROR:",
+      error.message
+    );
+    return;
+  }
+
+  setMessages((current) =>
+    current.map((item) =>
+      item.id === messageId
+        ? {
+            ...item,
+            deleted_at:
+              updated?.deleted_at ??
+              new Date().toISOString(),
+          }
+        : item
+    )
+  );
+
+  if (
+    editingMessage?.id ===
+    messageId
+  ) {
+    setEditingMessage(null);
+    setText("");
+  }
+
+  setMessageMenuMessage(null);
+  setConfirmingDelete(false);
+};
+
   const handleSend = async () => {
     if (
       !id ||
       !text.trim() ||
       sending
     ) {
+      return;
+    }
+
+    if (editingMessage) {
+      const messageText = text;
+
+      setSending(true);
+
+      const {
+        message: updated,
+        error,
+      } = await editMessage(
+        editingMessage.id,
+        messageText
+      );
+
+      setSending(false);
+
+      if (error) {
+        console.log(
+          "EDIT MESSAGE ERROR:",
+          error.message
+        );
+        return;
+      }
+
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === editingMessage.id
+            ? {
+                ...message,
+                body:
+                  updated?.body ??
+                  messageText.trim(),
+                edited_at:
+                  updated?.edited_at ??
+                  new Date().toISOString(),
+              }
+            : message
+        )
+      );
+
+      setEditingMessage(null);
+      setText("");
+
       return;
     }
 
@@ -735,6 +854,233 @@ if (loading) {
         backgroundColor: theme.background,
       }}
     >
+      <Modal
+          visible={!!messageMenuMessage}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={() => {
+            setMessageMenuMessage(null);
+            setConfirmingDelete(false);
+          }}
+        >
+          <Pressable
+            onPress={() => {
+              setMessageMenuMessage(null);
+              setConfirmingDelete(false);
+            }}
+            style={{
+              flex: 1,
+              backgroundColor:
+                "rgba(0,0,0,0.45)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Pressable
+              onPress={() => {}}
+              style={{
+                backgroundColor:
+                  colorScheme === "dark"
+                    ? "#1C1C1E"
+                    : "#FFFFFF",
+
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 84,
+              }}
+            >
+              <View
+                style={{
+                  width: 38,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: "#888888",
+                  opacity: 0.4,
+                  alignSelf: "center",
+                  marginBottom: 18,
+                }}
+              />
+
+              {!confirmingDelete ? (
+                <>
+                  <Text
+                    numberOfLines={2}
+                    style={{
+                      color: theme.text,
+                      fontFamily: "alanRegular",
+                      fontSize: 15,
+                      opacity: 0.6,
+                      marginBottom: 16,
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    {messageMenuMessage?.body}
+                  </Text>
+
+                  <Pressable
+                    onPress={() => {
+                      if (!messageMenuMessage) {
+                        return;
+                      }
+
+                      setReplyingToMessage(null);
+                      setEditingMessage(
+                        messageMenuMessage
+                      );
+                      setText(
+                        messageMenuMessage.body
+                      );
+
+                      setMessageMenuMessage(null);
+
+                      setTimeout(() => {
+                        messageInputRef.current?.focus();
+                      }, 200);
+
+                    }}
+                    style={({ pressed }) => ({
+                      height: 56,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 14,
+                      paddingHorizontal: 14,
+                      borderRadius: 16,
+                      opacity: pressed ? 0.6 : 1,
+                    })}
+                  >
+                    <Ionicons
+                      name="pencil-outline"
+                      size={22}
+                      color={theme.text}
+                    />
+
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontFamily:
+                          "alanSemiBold",
+                        fontSize: 17,
+                      }}
+                    >
+                      Edit message
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() =>
+                      setConfirmingDelete(true)
+                    }
+                    style={({ pressed }) => ({
+                      height: 56,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 14,
+                      paddingHorizontal: 14,
+                      borderRadius: 16,
+                      opacity: pressed ? 0.6 : 1,
+                    })}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={22}
+                      color="#EF4444"
+                    />
+
+                    <Text
+                      style={{
+                        color: "#EF4444",
+                        fontFamily:
+                          "alanSemiBold",
+                        fontSize: 17,
+                      }}
+                    >
+                      Delete message
+                    </Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontFamily:
+                        "alanSemiBold",
+                      fontSize: 20,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Delete message?
+                  </Text>
+
+                  <Text
+                    style={{
+                      color: "#888888",
+                      fontFamily:
+                        "alanRegular",
+                      fontSize: 15,
+                      marginBottom: 22,
+                    }}
+                  >
+                    This message will be removed
+                    for everyone.
+                  </Text>
+
+                  <Pressable
+                    onPress={handleDeleteMessage}
+                    style={({ pressed }) => ({
+                      height: 52,
+                      borderRadius: 16,
+                      backgroundColor:
+                        "#EF4444",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      opacity: pressed
+                        ? 0.75
+                        : 1,
+                    })}
+                  >
+                    <Text
+                      style={{
+                        color: "#FFFFFF",
+                        fontFamily:
+                          "alanSemiBold",
+                        fontSize: 16,
+                      }}
+                    >
+                      Delete
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() =>
+                      setConfirmingDelete(false)
+                    }
+                    style={{
+                      height: 48,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      marginTop: 6,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontFamily:
+                          "alanRegular",
+                        fontSize: 16,
+                      }}
+                    >
+                      Cancel
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={
@@ -899,7 +1245,14 @@ return (
       setReplyingToMessage(message)
     }
   >
-    <View
+    <Pressable
+      onLongPress={
+        mine && !message.deleted_at
+          ? () =>
+              handleMessageLongPress(message)
+          : undefined
+      }
+      delayLongPress={350}
       style={{
         alignSelf: mine
           ? "flex-end"
@@ -980,7 +1333,9 @@ return (
           fontSize: 16,
         }}
       >
-        {message.body}
+        {message.deleted_at
+          ? "Message deleted"
+          : message.body}
       </Text>
 
       <Text
@@ -1001,8 +1356,13 @@ return (
           hour: "2-digit",
           minute: "2-digit",
         })}
+
+        {message.edited_at &&
+          !message.deleted_at
+            ? " · edited"
+            : ""}
       </Text>
-    </View>
+    </Pressable>
   </SwipeToReply>
 );
 }}
@@ -1087,6 +1447,7 @@ return (
       }}
     >
       <TextInput
+        ref={messageInputRef}
         value={text}
         onChangeText={handleTextChange}
         placeholder="Message..."
