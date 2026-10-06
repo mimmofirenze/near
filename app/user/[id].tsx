@@ -43,6 +43,8 @@ import {
 
 import { openOrCreateDirectConversation } from "../../utils/chat";
 
+import Skeleton from "../../components/Skeleton";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -314,30 +316,196 @@ const handleOpenChat = async () => {
       ).toLocaleDateString("en-GB")
     : "";
 
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={[
-          styles.screen,
-          {
-            backgroundColor:
-              theme.background,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
+if (loading) {
+  return (
+    <SafeAreaView
+      style={[
+        styles.screen,
+        {
+          backgroundColor: theme.background,
+        },
+      ]}
+      edges={["top"]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Text
+        {/* BACK */}
+        <View
           style={{
-            color: theme.text,
-            fontFamily: "alanRegular",
+            width: "100%",
+            marginTop: 34,
+            marginBottom: 0,
           }}
         >
-          Loading...
-        </Text>
-      </SafeAreaView>
-    );
-  }
+          <Ionicons
+            name="arrow-back-outline"
+            size={30}
+            color={theme.text}
+            onPress={() => router.back()}
+          />
+        </View>
+
+        {/* AVATAR + NAME */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            width: "100%",
+            marginTop: 10,
+            marginBottom: 18,
+          }}
+        >
+          <Skeleton
+            style={[
+              styles.profileImage,
+              {
+                marginRight: 22,
+              },
+            ]}
+          />
+
+          <View
+            style={{
+              flex: 1,
+              alignItems: "flex-start",
+            }}
+          >
+            <Skeleton
+              width={140}
+              height={24}
+              borderRadius={6}
+            />
+
+            <Skeleton
+              width={100}
+              height={16}
+              borderRadius={5}
+              style={{
+                marginTop: 4,
+              }}
+            />
+
+            <Skeleton
+              width={85}
+              height={16}
+              borderRadius={5}
+              style={{
+                marginTop: 8,
+              }}
+            />
+          </View>
+        </View>
+
+        {/* ACTION BUTTONS */}
+        <View
+          style={{
+            flexDirection: "row",
+            width: "100%",
+            gap: 12,
+            marginTop: 10,
+          }}
+        >
+          <Skeleton
+            height={40}
+            borderRadius={20}
+            style={{ flex: 1 }}
+          />
+
+          <Skeleton
+            height={40}
+            borderRadius={20}
+            style={{ flex: 1 }}
+          />
+        </View>
+
+        {/* BIO */}
+        <Skeleton
+          width="75%"
+          height={18}
+          borderRadius={5}
+          style={{
+            marginTop: 24,
+          }}
+        />
+
+        {/* LAST SEEN */}
+        <View style={styles.locationSection}>
+          <Skeleton
+            width={100}
+            height={20}
+            borderRadius={5}
+          />
+
+          <Skeleton
+            width={150}
+            height={18}
+            borderRadius={5}
+            style={{
+              marginTop: 8,
+            }}
+          />
+
+          <Skeleton
+            width={130}
+            height={14}
+            borderRadius={5}
+            style={{
+              marginTop: 6,
+            }}
+          />
+        </View>
+
+        {/* COUNTRIES */}
+        <View style={styles.countriesSection}>
+          <Skeleton
+            width={155}
+            height={20}
+            borderRadius={5}
+          />
+
+          <View
+            style={[
+              styles.flagsRow,
+              {
+                marginTop: 8,
+              },
+            ]}
+          >
+            <Skeleton
+              width={34}
+              height={26}
+              borderRadius={5}
+            />
+
+            <Skeleton
+              width={34}
+              height={26}
+              borderRadius={5}
+            />
+
+            <Skeleton
+              width={34}
+              height={26}
+              borderRadius={5}
+            />
+          </View>
+        </View>
+
+        {/* MEMBER SINCE */}
+        <Skeleton
+          width={175}
+          height={16}
+          borderRadius={5}
+          style={{
+            marginTop: 20,
+          }}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
   return (
     <SafeAreaView

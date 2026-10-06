@@ -501,14 +501,16 @@ useEffect(() => {
   ) => {
     setSelectedFriend(friend);
 
-    mapRef.current?.animateToRegion(
+    mapRef.current?.animateCamera(
       {
-        latitude: friend.latitude,
-        longitude: friend.longitude,
-        latitudeDelta: 0.03,
-        longitudeDelta: 0.03,
+        center: {
+          latitude: friend.latitude,
+          longitude: friend.longitude,
+        },
       },
-      400
+      {
+        duration: 400,
+      }
     );
   };
 

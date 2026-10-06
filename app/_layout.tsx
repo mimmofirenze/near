@@ -21,23 +21,37 @@ function RootNavigator() {
   const { theme, colorScheme } =
     useAppTheme();
 
-    useEffect(() => {
+useEffect(() => {
   const handleNotificationResponse = (
     response: Notifications.NotificationResponse
   ) => {
     const data =
       response.notification.request.content.data;
 
-      if (
-        data?.type === "chat_message" &&
-        typeof data.conversationId === "string"
-      ) {
-        router.push(
-          `/chat/${data.conversationId}`
-        );
+    if (
+      data?.type === "chat_message" &&
+      typeof data.conversationId === "string"
+    ) {
+      router.push(
+        `/chat/${data.conversationId}`
+      );
 
-        return;
-      }
+      return;
+    }
+
+    if (
+      data?.type === "nearby_friend" &&
+      typeof data.friendId === "string"
+    ) {
+      router.push({
+        pathname: "/(tabs)/home",
+        params: {
+          friendId: data.friendId,
+        },
+      });
+
+      return;
+    }
 
     if (
       (data?.type === "friend_request" ||
