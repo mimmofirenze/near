@@ -6,7 +6,11 @@ import {
   ScrollView,
 } from "react-native";
 
-import { useCallback, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useFocusEffect, router } from "expo-router";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +25,15 @@ import { countryCodeToFlag } from "../../utils/countries";
 import { useAppTheme } from "../../contexts/themeContext";
 import Skeleton from "../../components/Skeleton";
 
+import {
+  getCachedData,
+  getMemoryCachedData,
+  setCachedData,
+  setMemoryCachedData,
+} from "../../utils/cache";
+
+import { supabase } from "../../lib/supabase";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -32,19 +45,39 @@ type Profile = {
   updated_at: string;
 };
 
+type CachedProfileData = {
+  profile: Profile;
+  visitedCountries: string[];
+};
+
 export default function ProfileScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const memoryProfile =
+  getMemoryCachedData<CachedProfileData>(
+    "near:profile-memory"
+  );
 
   const defaultAvatar =
   colorScheme === "dark"
     ? require("../../assets/images/Sample_User_Icon-dark.png")
     : require("../../assets/images/Sample_User_Icon.png");
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [visitedCountries, setVisitedCountries] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] =
+  useState<Profile | null>(
+    () => memoryProfile?.profile ?? null
+  );
+  const [
+  visitedCountries,
+  setVisitedCountries,
+] = useState<string[]>(
+  () =>
+    memoryProfile?.visitedCountries ?? []
+);
+  const [loading, setLoading] =
+  useState(() => !memoryProfile);
   const [profileError, setProfileError] = useState("");
 
   const [lastSeenPlace, setLastSeenPlace] =
@@ -53,52 +86,155 @@ export default function ProfileScreen() {
   const [lastSeenAt, setLastSeenAt] =
   useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
+useEffect(() => {
+  if (!profile) return;
 
-      const loadProfile = async () => {
-        setProfile((currentProfile) => {
-          if (!currentProfile) {
-            setLoading(true);
-          }
-
-          return currentProfile;
-        });
-
-        setProfileError("");
-
-        const [
-          { profile: updatedProfile, error: profileLoadError },
-          { countries, error: countriesError },
-        ] = await Promise.all([
-          getCurrentProfile(),
-          getVisitedCountries(),
-        ]);
-
-        if (profileLoadError) {
-          setProfileError(profileLoadError.message);
-          setLoading(false);
-          return;
-        }
-
-        if (countriesError) {
-          setProfileError(countriesError.message);
-        } else {
-          setVisitedCountries(countries);
-        }
-
-        setProfile(updatedProfile);
-        setLoading(false);
-      };
-
-      loadProfile();
-
-      return () => {
-        isActive = false;
-      };
-    }, [])
+  setMemoryCachedData(
+    "near:profile-memory",
+    {
+      profile,
+      visitedCountries,
+    } satisfies CachedProfileData
   );
+}, [
+  profile,
+  visitedCountries,
+]);
+
+useFocusEffect(
+  useCallback(() => {
+    let isActive = true;
+
+    const loadProfile = async () => {
+      setProfileError("");
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const userId = session?.user.id;
+
+      if (!userId) {
+        if (isActive) {
+          setLoading(false);
+        }
+
+        return;
+      }
+
+      const cacheKey =
+        `near:profile:${userId}`;
+
+      /*
+       * 1. LOAD CACHE FIRST
+       */
+      const cached =
+        await getCachedData<CachedProfileData>(
+          cacheKey
+        );
+
+      if (cached && isActive) {
+        setProfile(cached.profile);
+        setVisitedCountries(
+          cached.visitedCountries
+        );
+
+        /*
+         * No skeleton — immediately show
+         * cached profile.
+         */
+        setLoading(false);
+      } else if (isActive) {
+        /*
+         * Only show skeleton if we've
+         * never cached this profile.
+         */
+        setLoading(true);
+      }
+
+      /*
+       * 2. SILENTLY GET FRESH DATA
+       */
+      const [
+        {
+          profile: updatedProfile,
+          error: profileLoadError,
+        },
+        {
+          countries,
+          error: countriesError,
+        },
+      ] = await Promise.all([
+        getCurrentProfile(),
+        getVisitedCountries(),
+      ]);
+
+      if (!isActive) {
+        return;
+      }
+
+      if (profileLoadError) {
+        /*
+         * If cache exists, keep showing it.
+         */
+        if (!cached) {
+          setProfileError(
+            profileLoadError.message
+          );
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      if (!updatedProfile) {
+        setLoading(false);
+        return;
+      }
+
+      const freshCountries =
+        countriesError
+          ? cached?.visitedCountries ?? []
+          : countries;
+
+      /*
+       * 3. UPDATE SCREEN
+       */
+      setProfile(updatedProfile);
+      setVisitedCountries(
+        freshCountries
+      );
+
+      if (countriesError) {
+        setProfileError(
+          countriesError.message
+        );
+      }
+
+      /*
+       * 4. UPDATE CACHE
+       */
+      await setCachedData(
+        cacheKey,
+        {
+          profile: updatedProfile,
+          visitedCountries:
+            freshCountries,
+        } satisfies CachedProfileData
+      );
+
+      if (isActive) {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [])
+);
 
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString("en-GB")

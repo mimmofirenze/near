@@ -39,6 +39,15 @@ import { styles } from "../../styles/chatsStyles";
 
 import Skeleton from "../../components/Skeleton";
 
+import { supabase } from "../../lib/supabase";
+
+import {
+  getCachedData,
+  setCachedData,
+  getMemoryCachedData,
+  setMemoryCachedData,
+} from "../../utils/cache";
+
 function formatChatTime(
   timestamp: string | null
 ) {
@@ -80,7 +89,24 @@ function formatChatTime(
   });
 }
 
+async function getChatsCacheKey() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const userId = session?.user.id;
+
+  return userId
+    ? `near:chats:${userId}`
+    : null;
+}
+
 export default function ChatsScreen() {
+
+  const memoryChats =
+  getMemoryCachedData<
+    ConversationListItem[]
+  >("near:chats-memory");
 
   const [typingChats, setTypingChats] =
   useState<Record<string, boolean>>({});
@@ -89,10 +115,12 @@ export default function ChatsScreen() {
     useAppTheme();
 
   const [conversations, setConversations] =
-    useState<ConversationListItem[]>([]);
+  useState<ConversationListItem[]>(
+    () => memoryChats ?? []
+  );
 
   const [loading, setLoading] =
-    useState(true);
+  useState(() => !memoryChats);
 
   const [errorMessage, setErrorMessage] =
     useState("");
@@ -102,57 +130,127 @@ export default function ChatsScreen() {
       ? require("../../assets/images/Sample_User_Icon-dark.png")
       : require("../../assets/images/Sample_User_Icon.png");
 
-  const loadConversations =
-    useCallback(async () => {
-      const {
-        conversations,
-        error,
-      } = await getMyConversations();
+useEffect(() => {
+  if (loading) return;
 
-      if (error) {
-        console.log(
-          "LOAD CHATS ERROR:",
-          error.message
-        );
+  setMemoryCachedData(
+    "near:chats-memory",
+    conversations
+  );
+}, [
+  conversations,
+  loading,
+]);
 
-        setErrorMessage(
-          "Could not load chats."
-        );
+const loadConversations =
+  useCallback(async () => {
+    const cacheKey =
+      await getChatsCacheKey();
 
-        setLoading(false);
+    const {
+      conversations: freshConversations,
+      error,
+    } = await getMyConversations();
+
+    if (error) {
+      console.log(
+        "LOAD CHATS ERROR:",
+        error.message
+      );
+
+      setErrorMessage(
+        "Could not refresh chats."
+      );
+
+      setLoading(false);
+      return;
+    }
+
+    setConversations(
+      freshConversations
+    );
+
+    setErrorMessage("");
+    setLoading(false);
+
+    if (cacheKey) {
+      await setCachedData(
+        cacheKey,
+        freshConversations
+      );
+    }
+  }, []);
+
+useFocusEffect(
+  useCallback(() => {
+    let isActive = true;
+
+    const start = async () => {
+      const cacheKey =
+        await getChatsCacheKey();
+
+      if (!isActive) {
         return;
       }
 
-      setConversations(conversations);
-      setErrorMessage("");
-      setLoading(false);
-    }, []);
+      /*
+       * SHOW CACHE FIRST
+       */
+      if (cacheKey) {
+        const cached =
+          await getCachedData<
+            ConversationListItem[]
+          >(cacheKey);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadConversations();
+        if (!isActive) {
+          return;
+        }
 
-      const unsubscribe =
-        subscribeToConversationList(() => {
-          loadConversations();
-        });
+        if (cached) {
+          setConversations(cached);
+          setLoading(false);
+        } else {
+          setLoading(true);
+        }
+      }
 
-      const appStateSubscription =
-        AppState.addEventListener(
-          "change",
-          (state) => {
-            if (state === "active") {
-              loadConversations();
-            }
+      /*
+       * REFRESH SILENTLY
+       */
+      await loadConversations();
+    };
+
+    start();
+
+    /*
+     * New messages still refresh
+     * from Supabase.
+     */
+    const unsubscribe =
+      subscribeToConversationList(() => {
+        loadConversations();
+      });
+
+    /*
+     * Refresh when app becomes active.
+     */
+    const appStateSubscription =
+      AppState.addEventListener(
+        "change",
+        (state) => {
+          if (state === "active") {
+            loadConversations();
           }
-        );
+        }
+      );
 
-      return () => {
-        unsubscribe();
-        appStateSubscription.remove();
-      };
-    }, [loadConversations])
-  );
+    return () => {
+      isActive = false;
+      unsubscribe();
+      appStateSubscription.remove();
+    };
+  }, [loadConversations])
+);
 
   const openConversation = (
     conversationId: string

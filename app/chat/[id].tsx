@@ -58,6 +58,13 @@ import Swipeable from
 
 import * as Crypto from "expo-crypto";
 
+import {
+  getCachedData,
+  getMemoryCachedData,
+  setCachedData,
+  setMemoryCachedData,
+} from "../../utils/cache";
+
 const PAGE_SIZE = 40;
 
 type ChatListItem =
@@ -74,6 +81,11 @@ type ChatListItem =
       type: "typing";
       id: string;
     };
+
+type CachedChatData = {
+  messages: ChatMessage[];
+  friend: ChatUser | null;
+};
 
 function isSameDay(
   first: Date,
@@ -162,6 +174,16 @@ export default function ChatScreen() {
     id: string;
   }>();
 
+const memoryCacheKey = id
+  ? `near:chat-memory:${id}`
+  : null;
+
+const memoryChat = memoryCacheKey
+  ? getMemoryCachedData<CachedChatData>(
+      memoryCacheKey
+    )
+  : null;
+
   useFocusEffect(
   useCallback(() => {
     if (!id) return;
@@ -178,16 +200,25 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<
     ChatMessage[]
-  >([]);
+  >(() => memoryChat?.messages ?? []);
 
   const [friend, setFriend] =
-    useState<ChatUser | null>(null);
+    useState<ChatUser | null>(
+      () => memoryChat?.friend ?? null
+    );
 
-  const [currentUserId, setCurrentUserId] =
+  const [chatCacheKey, setChatCacheKey] =
     useState<string | null>(null);
 
+  const [currentUserId, setCurrentUserId] =
+    useState<string | null>(
+      () =>
+        memoryChat?.currentUserId ?? null
+    );
+
   const [text, setText] = useState("");
-  const [loading, setLoading] = useState(true);
+ const [loading, setLoading] =
+  useState(() => !memoryChat);
   const [sending, setSending] = useState(false);
   const [loadingMore, setLoadingMore] =
     useState(false);
@@ -411,83 +442,222 @@ useEffect(() => {
       scrollToNewest();
     };
 
-  const loadChat = async () => {
-    if (!id) return;
+const loadChat = async () => {
+  if (!id) return;
 
+  try {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    setCurrentUserId(user?.id ?? null);
+    const userId =
+      session?.user.id ?? null;
 
+    setCurrentUserId(userId);
+
+    const cacheKey = userId
+      ? `near:chat:${userId}:${id}`
+      : null;
+
+    setChatCacheKey(cacheKey);
+
+    /*
+     * CACHE FIRST
+     */
+    if (cacheKey) {
+      const cached =
+        await getCachedData<
+          CachedChatData
+        >(cacheKey);
+
+      if (cached) {
+        setMessages(
+          cached.messages
+        );
+
+        setFriend(
+          cached.friend
+        );
+
+        hasMoreRef.current =
+          cached.messages.length ===
+          PAGE_SIZE;
+
+        /*
+         * IMPORTANT:
+         * stop showing skeleton immediately
+         */
+        setLoading(false);
+      }
+    }
+
+    /*
+     * FRESH DATA
+     */
     const [
-      { messages: loadedMessages, error },
-      { friend: loadedFriend },
+      {
+        messages: loadedMessages,
+        error: messagesError,
+      },
+      {
+        friend: loadedFriend,
+        error: friendError,
+      },
     ] = await Promise.all([
-      getMessages(id, undefined, PAGE_SIZE),
+      getMessages(
+        id,
+        undefined,
+        PAGE_SIZE
+      ),
       getConversationFriend(id),
     ]);
 
-    if (!error) {
-      setMessages(loadedMessages);
+    if (messagesError) {
+      console.log(
+        "LOAD MESSAGES ERROR:",
+        messagesError.message
+      );
+    } else {
+      setMessages(
+        loadedMessages
+      );
 
       hasMoreRef.current =
-        loadedMessages.length === PAGE_SIZE;
+        loadedMessages.length ===
+        PAGE_SIZE;
     }
 
-    setFriend(loadedFriend);
+    if (friendError) {
+      console.log(
+        "LOAD CHAT FRIEND ERROR:",
+        friendError.message
+      );
+    } else {
+      setFriend(
+        loadedFriend
+      );
+    }
 
     await markConversationRead(id);
 
+  } catch (error) {
+    console.log(
+      "LOAD CHAT CACHE ERROR:",
+      error
+    );
+  } finally {
+    /*
+     * Skeleton can NEVER get stuck now.
+     */
     setLoading(false);
 
     setTimeout(() => {
-    scrollToNewest(false);
+      scrollToNewest(false);
     }, 50);
+  }
+};
+
+useEffect(() => {
+  if (
+    !id ||
+    !friend ||
+    !currentUserId
+  ) {
+    return;
+  }
+
+  const cacheableMessages =
+    messages
+      .filter(
+        (message) =>
+          !message.local_status &&
+          !message.id.startsWith(
+            "temp-"
+          )
+      )
+      .slice(0, PAGE_SIZE);
+
+  const cacheData: CachedChatData = {
+    messages: cacheableMessages,
+    friend,
+    currentUserId,
   };
 
-  useEffect(() => {
-    if (!id) return;
+  /*
+   * RAM CACHE
+   * synchronous → instant reopening
+   */
+  setMemoryCachedData(
+    `near:chat-memory:${id}`,
+    cacheData
+  );
 
-    loadChat();
+  /*
+   * DISK CACHE
+   * survives app restart
+   */
+  if (chatCacheKey) {
+    setCachedData(
+      chatCacheKey,
+      cacheData
+    );
+  }
+}, [
+  id,
+  chatCacheKey,
+  messages,
+  friend,
+  currentUserId,
+]);
 
-    let unsubscribe =
-      subscribeToMessages(
-        id,
-        async (message) => {
-          addMessage(message);
-          await markConversationRead(id);
+useEffect(() => {
+  if (!id) return;
+
+  loadChat();
+
+  let unsubscribe =
+    subscribeToMessages(
+      id,
+      async (message) => {
+        addMessage(message);
+
+        await markConversationRead(
+          id
+        );
+      }
+    );
+
+  const appStateSubscription =
+    AppState.addEventListener(
+      "change",
+      async (state) => {
+        if (state !== "active") {
+          return;
         }
-      );
 
-    const appStateSubscription =
-      AppState.addEventListener(
-        "change",
-        async (state) => {
-          if (state !== "active") {
-            return;
-          }
+        unsubscribe();
 
-          unsubscribe();
+        await loadChat();
 
-          await loadChat();
+        unsubscribe =
+          subscribeToMessages(
+            id,
+            async (message) => {
+              addMessage(message);
 
-          unsubscribe =
-            subscribeToMessages(
-              id,
-              async (message) => {
-                addMessage(message);
-                await markConversationRead(id);
-              }
-            );
-        }
-      );
+              await markConversationRead(
+                id
+              );
+            }
+          );
+      }
+    );
 
-    return () => {
-      unsubscribe();
-      appStateSubscription.remove();
-    };
-  }, [id]);
+  return () => {
+    unsubscribe();
+    appStateSubscription.remove();
+  };
+}, [id]);
 
 const handleMessageLongPress = (
   message: ChatMessage
@@ -1168,44 +1338,65 @@ if (loading) {
             />
           </Pressable>
 
-          <Image
-            source={
-              friend?.avatar_url
-                ? {
-                    uri: friend.avatar_url,
-                  }
-                : defaultAvatar
-            }
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 21,
+          <Pressable
+            disabled={!friend?.id}
+            onPress={() => {
+              if (!friend?.id) return;
+
+              router.push({
+                pathname: "/user/[id]",
+                params: {
+                  id: friend.id,
+                },
+              });
             }}
-          />
-
-          <View>
-            <Text
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              flex: 1,
+              opacity: pressed ? 0.65 : 1,
+            })}
+          >
+            <Image
+              source={
+                friend?.avatar_url
+                  ? {
+                      uri: friend.avatar_url,
+                    }
+                  : defaultAvatar
+              }
               style={{
-                color: theme.text,
-                fontFamily: "alanRegular",
-                fontSize: 18,
+                width: 42,
+                height: 42,
+                borderRadius: 21,
               }}
-            >
-              {friend?.first_name ?? "Chat"}
-            </Text>
+            />
 
-            {friend?.username ? (
-            <Text
+            <View>
+              <Text
                 style={{
-                color: "#888888",
-                fontFamily: "alanRegular",
-                fontSize: 13,
+                  color: theme.text,
+                  fontFamily: "alanRegular",
+                  fontSize: 18,
                 }}
-            >
-                {friend.username}
-            </Text>
-            ) : null}
-          </View>
+              >
+                {friend?.first_name ?? "Chat"}
+              </Text>
+
+              {friend?.username ? (
+                <Text
+                  style={{
+                    color: "#888888",
+                    fontFamily: "alanRegular",
+                    fontSize: 13,
+                  }}
+                >
+                  {friend.username}
+                </Text>
+              ) : null}
+            </View>
+          </Pressable>
         </View>
 
         <FlatList

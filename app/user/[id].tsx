@@ -45,6 +45,15 @@ import { openOrCreateDirectConversation } from "../../utils/chat";
 
 import Skeleton from "../../components/Skeleton";
 
+import { supabase } from "../../lib/supabase";
+
+import {
+  getCachedData,
+  getMemoryCachedData,
+  setCachedData,
+  setMemoryCachedData,
+} from "../../utils/cache";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -56,10 +65,32 @@ type Profile = {
   updated_at: string;
 };
 
+type CachedUserProfileData = {
+  profile: Profile;
+  visitedCountries: string[];
+  lastSeenPlace: string | null;
+  lastSeenAt: string | null;
+  relationshipStatus:
+    | RelationshipStatus
+    | null;
+  incomingRequestId: string | null;
+};
+
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
+
+const memoryProfileKey = id
+  ? `near:user-profile-memory:${id}`
+  : null;
+
+const memoryProfile =
+  memoryProfileKey
+    ? getMemoryCachedData<
+        CachedUserProfileData
+      >(memoryProfileKey)
+    : null;
 
   const { theme, colorScheme } =
     useAppTheme();
@@ -70,105 +101,312 @@ export default function UserProfileScreen() {
     : require("../../assets/images/Sample_User_Icon.png");
 
   const [profile, setProfile] =
-    useState<Profile | null>(null);
+  useState<Profile | null>(
+    () => memoryProfile?.profile ?? null
+  );
 
-  const [visitedCountries, setVisitedCountries] =
-    useState<string[]>([]);
+  const [
+  visitedCountries,
+  setVisitedCountries,
+] = useState<string[]>(
+  () =>
+    memoryProfile?.visitedCountries ??
+    []
+);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+  useState(() => !memoryProfile);
   const [errorMessage, setErrorMessage] =
     useState("");
 
-  const [relationshipStatus, setRelationshipStatus] =
-  useState<RelationshipStatus | null>(null);
+  const [
+  relationshipStatus,
+  setRelationshipStatus,
+] =
+  useState<RelationshipStatus | null>(
+    () =>
+      memoryProfile
+        ?.relationshipStatus ?? null
+  );
 
   const [sendingRequest, setSendingRequest] =
   useState(false);
 
-  const [incomingRequestId, setIncomingRequestId] =
-  useState<string | null>(null);
+  const [
+  incomingRequestId,
+  setIncomingRequestId,
+] = useState<string | null>(
+  () =>
+    memoryProfile
+      ?.incomingRequestId ?? null
+);
 
   const [processingRequest, setProcessingRequest] =
   useState(false);
 
-  const [lastSeenPlace, setLastSeenPlace] =
-  useState<string | null>(null);
+  const [
+  lastSeenPlace,
+  setLastSeenPlace,
+] = useState<string | null>(
+  () =>
+    memoryProfile?.lastSeenPlace ??
+    null
+);
 
-  const [lastSeenAt, setLastSeenAt] =
-  useState<string | null>(null);
+  const [
+  lastSeenAt,
+  setLastSeenAt,
+] = useState<string | null>(
+  () =>
+    memoryProfile?.lastSeenAt ??
+    null
+);
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!id) {
-        setErrorMessage("Invalid user.");
-        setLoading(false);
-        return;
-      }
+useEffect(() => {
+  if (
+    !memoryProfileKey ||
+    !profile ||
+    loading
+  ) {
+    return;
+  }
 
-      const [
-        { profile, error: profileError },
-        {
-          countries,
-          error: countriesError,
-        },
-        {
-          lastSeen,
-          error: locationError,
-        },
-      ] = await Promise.all([
-        getProfileById(id),
-        getVisitedCountriesByUserId(id),
-        getUserLastSeenLocation(id),
-      ]);
+  setMemoryCachedData(
+    memoryProfileKey,
+    {
+      profile,
+      visitedCountries,
+      lastSeenPlace,
+      lastSeenAt,
+      relationshipStatus,
+      incomingRequestId,
+    } satisfies CachedUserProfileData
+  );
+}, [
+  memoryProfileKey,
+  profile,
+  visitedCountries,
+  lastSeenPlace,
+  lastSeenAt,
+  relationshipStatus,
+  incomingRequestId,
+  loading,
+]);
 
-      if (profileError) {
-        setErrorMessage(profileError.message);
-        setLoading(false);
-        return;
-      }
+useEffect(() => {
+  let isActive = true;
 
-      if (countriesError) {
-        setErrorMessage(countriesError.message);
-      } else {
-        setVisitedCountries(countries);
-      }
+  const loadUserProfile = async () => {
+    if (!id) {
+      setErrorMessage("Invalid user.");
+      setLoading(false);
+      return;
+    }
 
-      if (locationError) {
-        console.log(
-          "Last seen location error:",
-          locationError.message
+    setErrorMessage("");
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const currentUserId =
+      session?.user.id;
+
+    const cacheKey =
+      currentUserId
+        ? `near:user-profile:${currentUserId}:${id}`
+        : null;
+
+    /*
+     * 1. SHOW CACHE IMMEDIATELY
+     */
+    const cached = cacheKey
+      ? await getCachedData<
+          CachedUserProfileData
+        >(cacheKey)
+      : null;
+
+    if (!isActive) return;
+
+    if (cached) {
+      setProfile(cached.profile);
+
+      setVisitedCountries(
+        cached.visitedCountries
+      );
+
+      setLastSeenPlace(
+        cached.lastSeenPlace
+      );
+
+      setLastSeenAt(
+        cached.lastSeenAt
+      );
+
+      setRelationshipStatus(
+        cached.relationshipStatus
+      );
+
+      setIncomingRequestId(
+        cached.incomingRequestId
+      );
+
+      setLoading(false);
+    } else if (!memoryProfile) {
+      setLoading(true);
+    }
+
+    /*
+     * 2. GET FRESH DATA
+     */
+    const [
+      {
+        profile: freshProfile,
+        error: profileError,
+      },
+      {
+        countries,
+        error: countriesError,
+      },
+      {
+        lastSeen,
+        error: locationError,
+      },
+      {
+        statuses,
+        error: statusError,
+      },
+    ] = await Promise.all([
+      getProfileById(id),
+      getVisitedCountriesByUserId(id),
+      getUserLastSeenLocation(id),
+      getRelationshipStatuses(),
+    ]);
+
+    if (!isActive) return;
+
+    /*
+     * If refresh fails but cache exists,
+     * keep showing cached data.
+     */
+    if (profileError || !freshProfile) {
+      if (!cached) {
+        setErrorMessage(
+          profileError?.message ??
+            "Could not load profile."
         );
       }
 
-      setLastSeenPlace(lastSeen.place);
-      setLastSeenAt(lastSeen.updatedAt);
-
-      setProfile(profile);
-
-const {
-  statuses,
-  error: statusError,
-} = await getRelationshipStatuses();
-
-if (!statusError && id) {
-  const status = statuses[id] ?? null;
-
-  setRelationshipStatus(status);
-
-  if (status === "incoming_pending") {
-    const { request, error } =
-      await getIncomingFriendRequestFromUser(id);
-
-    if (!error && request) {
-      setIncomingRequestId(request.id);
-    }
-  }
-}
       setLoading(false);
-    };
+      return;
+    }
 
-    loadUserProfile();
-  }, [id]);
+    const freshCountries =
+      countriesError
+        ? cached?.visitedCountries ?? []
+        : countries;
+
+    const freshLastSeenPlace =
+      locationError
+        ? cached?.lastSeenPlace ?? null
+        : lastSeen.place;
+
+    const freshLastSeenAt =
+      locationError
+        ? cached?.lastSeenAt ?? null
+        : lastSeen.updatedAt;
+
+    const freshRelationshipStatus =
+      statusError
+        ? cached?.relationshipStatus ??
+          null
+        : statuses[id] ?? null;
+
+    /*
+     * If they sent us a request,
+     * get its friendship ID.
+     */
+    let freshIncomingRequestId =
+      cached?.incomingRequestId ?? null;
+
+    if (
+      freshRelationshipStatus ===
+      "incoming_pending"
+    ) {
+      const {
+        request,
+        error,
+      } =
+        await getIncomingFriendRequestFromUser(
+          id
+        );
+
+      if (!error) {
+        freshIncomingRequestId =
+          request?.id ?? null;
+      }
+    } else {
+      freshIncomingRequestId = null;
+    }
+
+    if (!isActive) return;
+
+    /*
+     * 3. UPDATE SCREEN
+     */
+    setProfile(freshProfile);
+
+    setVisitedCountries(
+      freshCountries
+    );
+
+    setLastSeenPlace(
+      freshLastSeenPlace
+    );
+
+    setLastSeenAt(
+      freshLastSeenAt
+    );
+
+    setRelationshipStatus(
+      freshRelationshipStatus
+    );
+
+    setIncomingRequestId(
+      freshIncomingRequestId
+    );
+
+    setLoading(false);
+
+    /*
+     * 4. UPDATE CACHE
+     */
+    if (cacheKey) {
+      await setCachedData(
+        cacheKey,
+        {
+          profile: freshProfile,
+          visitedCountries:
+            freshCountries,
+          lastSeenPlace:
+            freshLastSeenPlace,
+          lastSeenAt:
+            freshLastSeenAt,
+          relationshipStatus:
+            freshRelationshipStatus,
+          incomingRequestId:
+            freshIncomingRequestId,
+        } satisfies CachedUserProfileData
+      );
+    }
+  };
+
+  loadUserProfile();
+
+  return () => {
+    isActive = false;
+  };
+}, [id]);
 
   const handleAddFriend = async () => {
   if (!id || sendingRequest) return;

@@ -37,6 +37,13 @@ import { useAppTheme } from "../../contexts/themeContext";
 import { supabase } from "../../lib/supabase";
 import Skeleton from "../../components/Skeleton";
 
+import {
+  getCachedData,
+  setCachedData,
+  getMemoryCachedData,
+  setMemoryCachedData,
+} from "../../utils/cache";
+
 type UserProfile = {
   id: string;
   first_name: string;
@@ -56,10 +63,36 @@ type FriendItem = {
   profile: UserProfile;
 };
 
+type CachedFriendsData = {
+  incomingRequests: IncomingRequest[];
+  friends: FriendItem[];
+  relationshipStatuses: Record<
+    string,
+    RelationshipStatus
+  >;
+};
+
+async function getFriendsCacheKey() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const userId = session?.user.id;
+
+  return userId
+    ? `near:friends:${userId}`
+    : null;
+}
+
 export default function FriendsScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const memoryFriends =
+  getMemoryCachedData<
+    CachedFriendsData
+  >("near:friends-memory");
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -69,14 +102,28 @@ export default function FriendsScreen() {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
 
-  const [incomingRequests, setIncomingRequests] = useState<
-    IncomingRequest[]
-  >([]);
+  const [
+  incomingRequests,
+  setIncomingRequests,
+] = useState<IncomingRequest[]>(
+  () =>
+    memoryFriends?.incomingRequests ??
+    []
+);
 
-  const [friends, setFriends] = useState<FriendItem[]>([]);
+  const [friends, setFriends] =
+  useState<FriendItem[]>(
+    () =>
+      memoryFriends?.friends ?? []
+  );
 
   const [searching, setSearching] = useState(false);
-  const [loadingFriends, setLoadingFriends] = useState(true);
+  const [
+  loadingFriends,
+  setLoadingFriends,
+] = useState(
+  () => !memoryFriends
+);
   const [errorMessage, setErrorMessage] = useState("");
 
   const [sendingRequestId, setSendingRequestId] =
@@ -89,56 +136,181 @@ export default function FriendsScreen() {
     []
   );
 
-  const [relationshipStatuses, setRelationshipStatuses] =
-    useState<Record<string, RelationshipStatus>>({});
+  const [
+  relationshipStatuses,
+  setRelationshipStatuses,
+] = useState<
+  Record<string, RelationshipStatus>
+>(
+  () =>
+    memoryFriends
+      ?.relationshipStatuses ?? {}
+);
 
-  const loadFriendsData = useCallback(async () => {
+useEffect(() => {
+  if (loadingFriends) return;
+
+  setMemoryCachedData(
+    "near:friends-memory",
+    {
+      incomingRequests,
+      friends,
+      relationshipStatuses,
+    } satisfies CachedFriendsData
+  );
+}, [
+  incomingRequests,
+  friends,
+  relationshipStatuses,
+  loadingFriends,
+]);
+
+const loadFriendsData =
+  useCallback(async () => {
     try {
       setErrorMessage("");
 
       const [
-        { requests, error: requestsError },
-        { friends: loadedFriends, error: friendsError },
-        { statuses, error: statusesError },
+        {
+          requests,
+          error: requestsError,
+        },
+        {
+          friends: loadedFriends,
+          error: friendsError,
+        },
+        {
+          statuses,
+          error: statusesError,
+        },
       ] = await Promise.all([
         getIncomingFriendRequests(),
         getFriends(),
         getRelationshipStatuses(),
       ]);
 
-      if (requestsError) {
-        setErrorMessage(requestsError.message);
-      } else {
-        setIncomingRequests(
-          requests as unknown as IncomingRequest[]
-        );
+      if (
+        requestsError ||
+        friendsError ||
+        statusesError
+      ) {
+        const error =
+          requestsError ||
+          friendsError ||
+          statusesError;
+
+        if (error) {
+          setErrorMessage(
+            error.message
+          );
+        }
+
+        setLoadingFriends(false);
+        return;
       }
 
-      if (friendsError) {
-        setErrorMessage(friendsError.message);
-      } else {
-        setFriends(
-          loadedFriends as unknown as FriendItem[]
-        );
-      }
+      const freshRequests =
+        requests as unknown as IncomingRequest[];
 
-      if (statusesError) {
-        setErrorMessage(statusesError.message);
-      } else {
-        setRelationshipStatuses(statuses);
+      const freshFriends =
+        loadedFriends as unknown as FriendItem[];
+
+      setIncomingRequests(
+        freshRequests
+      );
+
+      setFriends(
+        freshFriends
+      );
+
+      setRelationshipStatuses(
+        statuses
+      );
+
+      setLoadingFriends(false);
+
+      const cacheKey =
+        await getFriendsCacheKey();
+
+      if (cacheKey) {
+        await setCachedData(
+          cacheKey,
+          {
+            incomingRequests:
+              freshRequests,
+            friends:
+              freshFriends,
+            relationshipStatuses:
+              statuses,
+          } satisfies CachedFriendsData
+        );
       }
     } catch {
-      setErrorMessage("Could not load your friends.");
-    } finally {
+      setErrorMessage(
+        "Could not load your friends."
+      );
+
       setLoadingFriends(false);
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadFriendsData();
-    }, [loadFriendsData])
-  );
+useFocusEffect(
+  useCallback(() => {
+    let isActive = true;
+
+    const start = async () => {
+      const cacheKey =
+        await getFriendsCacheKey();
+
+      if (!isActive) {
+        return;
+      }
+
+      /*
+       * SHOW CACHE FIRST
+       */
+      if (cacheKey) {
+        const cached =
+          await getCachedData<
+            CachedFriendsData
+          >(cacheKey);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (cached) {
+          setIncomingRequests(
+            cached.incomingRequests
+          );
+
+          setFriends(
+            cached.friends
+          );
+
+          setRelationshipStatuses(
+            cached.relationshipStatuses
+          );
+
+          setLoadingFriends(false);
+        } else {
+          setLoadingFriends(true);
+        }
+      }
+
+      /*
+       * SILENTLY REFRESH
+       */
+      await loadFriendsData();
+    };
+
+    start();
+
+    return () => {
+      isActive = false;
+    };
+  }, [loadFriendsData])
+);
 
 useEffect(() => {
   const channel = supabase
