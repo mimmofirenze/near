@@ -56,6 +56,8 @@ import {
 import Swipeable from
   "react-native-gesture-handler/ReanimatedSwipeable";
 
+import * as Crypto from "expo-crypto";
+
 const PAGE_SIZE = 40;
 
 type ChatListItem =
@@ -376,22 +378,37 @@ useEffect(() => {
       : require("../../assets/images/Sample_User_Icon.png");
 
     const addMessage = (
-    message: ChatMessage
+      message: ChatMessage
     ) => {
-    setMessages((current) => {
-        if (
-        current.some(
+      setMessages((current) => {
+        const existingIndex =
+          current.findIndex(
             (existing) =>
-            existing.id === message.id
-        )
-        ) {
-        return current;
+              existing.id === message.id ||
+              (
+                message.client_id &&
+                existing.client_id ===
+                  message.client_id
+              )
+          );
+
+        if (existingIndex !== -1) {
+          return current.map(
+            (existing, index) =>
+              index === existingIndex
+                ? {
+                    ...existing,
+                    ...message,
+                    local_status: undefined,
+                  }
+                : existing
+          );
         }
 
         return [message, ...current];
-    });
+      });
 
-    scrollToNewest();
+      scrollToNewest();
     };
 
   const loadChat = async () => {
@@ -533,13 +550,15 @@ const handleDeleteMessage = async () => {
   const handleSend = async () => {
     if (
       !id ||
-      !text.trim() ||
-      sending
+      !text.trim()
     ) {
       return;
     }
 
     if (editingMessage) {
+      if (sending) {
+        return;
+      }
       const messageText = text;
 
       setSending(true);
@@ -584,42 +603,79 @@ const handleDeleteMessage = async () => {
       return;
     }
 
-    const messageText = text;
+const messageText = text.trim();
+const clientId = Crypto.randomUUID();
 
-    setText("");
-    setSending(true);
+const optimisticMessage: ChatMessage = {
+  id: `temp-${clientId}`,
+  client_id: clientId,
+  conversation_id: id,
+  sender_id: currentUserId!,
+  body: messageText,
+  created_at: new Date().toISOString(),
 
-    const { message, error } =
-      await sendMessage(
-        id,
-        messageText,
-        replyingToMessage?.id ?? null
-      );
+  reply_to_message_id:
+    replyingToMessage?.id ?? null,
 
-    setSending(false);
+  reply_to: replyingToMessage
+    ? {
+        id: replyingToMessage.id,
+        sender_id:
+          replyingToMessage.sender_id,
+        body: replyingToMessage.body,
+      }
+    : null,
 
-    if (error) {
-      setText(messageText);
+  edited_at: null,
+  deleted_at: null,
+  delivered_at: null,
 
-      console.log(
-        "SEND MESSAGE ERROR:",
-        error.message
-      );
+  local_status: "pending",
+};
 
-      return;
-    }
+setText("");
+setReplyingToMessage(null);
 
-    if (message) {
-      addMessage(message);
-      setReplyingToMessage(null);
-      await markConversationRead(id);
-    }
-    if (currentUserId) {
+/* SHOW MESSAGE INSTANTLY */
+addMessage(optimisticMessage);
+
+const { message, error } =
+  await sendMessage(
+    id,
+    messageText,
+    optimisticMessage.reply_to_message_id,
+    clientId
+  );
+
+if (error) {
+  setMessages((current) =>
+    current.map((item) =>
+      item.client_id === clientId
+        ? {
+            ...item,
+            local_status: "failed",
+          }
+        : item
+    )
+  );
+
+  console.log(
+    "SEND MESSAGE ERROR:",
+    error.message
+  );
+
+  return;
+}
+
+if (message) {
+  addMessage(message);
+  await markConversationRead(id);
+}
+
+if (currentUserId) {
   isTypingRef.current = false;
 
-  if (
-    typingTimeoutRef.current
-  ) {
+  if (typingTimeoutRef.current) {
     clearTimeout(
       typingTimeoutRef.current
     );
@@ -1338,30 +1394,64 @@ return (
           : message.body}
       </Text>
 
-      <Text
+      <View
         style={{
           marginTop: 4,
-
-          color: mine
-            ? "rgba(255,255,255,0.7)"
-            : "#888888",
-
-          fontSize: 10,
-          alignSelf: "flex-end",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 3,
         }}
       >
-        {new Date(
-          message.created_at
-        ).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
+        <Text
+          style={{
+            color: mine
+              ? "rgba(255,255,255,0.7)"
+              : "#888888",
+            fontSize: 10,
+          }}
+        >
+          {new Date(
+            message.created_at
+          ).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
 
-        {message.edited_at &&
+          {message.edited_at &&
           !message.deleted_at
             ? " · edited"
             : ""}
-      </Text>
+        </Text>
+
+        {mine ? (
+          message.local_status === "pending" ? (
+            <Ionicons
+              name="time-outline"
+              size={13}
+              color="rgba(255,255,255,0.7)"
+            />
+          ) : message.local_status === "failed" ? (
+            <Ionicons
+              name="alert-circle-outline"
+              size={14}
+              color="#FCA5A5"
+            />
+          ) : message.delivered_at ? (
+            <Ionicons
+              name="checkmark-done"
+              size={15}
+              color="rgba(255,255,255,0.85)"
+            />
+          ) : (
+            <Ionicons
+              name="checkmark"
+              size={14}
+              color="rgba(255,255,255,0.75)"
+            />
+          )
+        ) : null}
+      </View>
     </Pressable>
   </SwipeToReply>
 );
@@ -1476,7 +1566,10 @@ return (
 
       <Pressable
         onPress={handleSend}
-        disabled={!text.trim() || sending}
+        disabled={
+          !text.trim() ||
+          (!!editingMessage && sending)
+        }
         style={({ pressed }) => ({
           width: 44,
           height: 44,

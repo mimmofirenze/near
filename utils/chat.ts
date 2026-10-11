@@ -9,6 +9,9 @@ export type ChatMessage = {
   reply_to_message_id: string | null;
   edited_at: string | null;
   deleted_at: string | null;
+  delivered_at: string | null;
+  client_id: string | null;
+  local_status?: "pending" | "failed";
 
   reply_to?: {
     id: string;
@@ -56,6 +59,8 @@ export async function getMessages(
       reply_to_message_id,
       edited_at,
       deleted_at,
+      client_id,
+      delivered_at,
       reply_to (
         id,
         sender_id,
@@ -83,7 +88,8 @@ export async function getMessages(
 export async function sendMessage(
   conversationId: string,
   text: string,
-  replyToMessageId?: string | null
+  replyToMessageId?: string | null,
+  clientId?: string | null
 ) {
   const cleanText = text.trim();
 
@@ -115,6 +121,7 @@ export async function sendMessage(
       sender_id: user.id,
       body: cleanText.slice(0, 2000),
       reply_to_message_id: replyToMessageId ?? null,
+      client_id: clientId ?? null,
     })
     .select(`
       id,
@@ -125,6 +132,8 @@ export async function sendMessage(
       reply_to_message_id,
       edited_at,
       deleted_at,
+      client_id,
+      delivered_at,
       reply_to (
         id,
         sender_id,
@@ -194,18 +203,79 @@ export async function deleteMessage(
   };
 }
 
+export async function markMessageDelivered(
+  messageId: string
+) {
+  const { error } = await supabase.rpc(
+    "mark_message_delivered",
+    {
+      p_message_id: messageId,
+    }
+  );
+
+  return { error };
+}
+
 export function subscribeToMessages(
   conversationId: string,
   onMessage: (message: ChatMessage) => void
 ) {
   const channel = supabase
-    .channel(
-      `chat-${conversationId}-${Date.now()}-${Math.random()}`
-    )
+    .channel(`chat-${conversationId}`)
     .on(
       "postgres_changes",
       {
         event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      async (payload) => {
+        const newMessage =
+          payload.new as ChatMessage;
+
+        if (!newMessage.reply_to_message_id) {
+          onMessage(newMessage);
+
+          await markMessageDelivered(
+            newMessage.id
+          );
+
+          return;
+        }
+
+        const { data: repliedMessage } =
+          await supabase
+            .from("messages")
+            .select(
+              "id, sender_id, body"
+            )
+            .eq(
+              "id",
+              newMessage.reply_to_message_id
+            )
+            .single();
+
+        onMessage({
+          ...newMessage,
+          reply_to: repliedMessage
+            ? {
+                id: repliedMessage.id,
+                sender_id:
+                  repliedMessage.sender_id,
+                body: repliedMessage.body,
+              }
+            : null,
+        });
+        await markMessageDelivered(
+          newMessage.id
+        );
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
         schema: "public",
         table: "messages",
         filter: `conversation_id=eq.${conversationId}`,

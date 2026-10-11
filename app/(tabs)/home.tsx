@@ -647,6 +647,7 @@ useEffect(() => {
         showsUserLocation
         showsMyLocationButton={false}
         showsCompass={false}
+        toolbarEnabled={false}
         clusteringEnabled
         minPoints={2}
         radius={45}
