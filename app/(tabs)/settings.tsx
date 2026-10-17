@@ -19,6 +19,7 @@ import {
 import {
   Alert,
   Pressable,
+  Linking,
   ScrollView,
   Switch,
   Text,
@@ -611,6 +612,52 @@ const confirmDeleteAccount = () => {
               ]}
             >
               Log out
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              {
+                color: theme.text,
+              },
+            ]}
+          >
+            Support
+          </Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.logoutButton,
+              pressed && styles.logoutButtonPressed,
+              {
+                backgroundColor: theme.background,
+                borderColor: "#2563EB",
+              },
+            ]}
+            onPress={() =>
+              Linking.openURL(
+                "mailto:support@app-near.me?subject=Near%20Support"
+              )
+            }
+          >
+            <Ionicons
+              name="mail-outline"
+              size={22}
+              color="#2563EB"
+            />
+
+            <Text
+              style={[
+                styles.logoutButtonText,
+                {
+                  color: "#2563EB",
+                },
+              ]}
+            >
+              Contact support
             </Text>
           </Pressable>
         </View>
