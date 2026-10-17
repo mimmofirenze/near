@@ -524,12 +524,13 @@ const handleRemoveFriend = () => {
 const handleSeeOnMap = () => {
   if (!id) return;
 
-  router.push({
+  router.dismissTo({
     pathname: "/(tabs)/home",
     params: {
       friendId: id,
     },
   });
+  console.log("SEE ON MAP PRESSED")
 };
 
 const handleOpenChat = async () => {

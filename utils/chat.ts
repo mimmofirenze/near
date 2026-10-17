@@ -216,12 +216,14 @@ export async function markMessageDelivered(
   return { error };
 }
 
+let messageChannelCounter = 0;
+
 export function subscribeToMessages(
   conversationId: string,
   onMessage: (message: ChatMessage) => void
 ) {
-  const channel = supabase
-    .channel(`chat-${conversationId}`)
+    const channel = supabase
+    .channel(`chat-${conversationId}-${++messageChannelCounter}`)
     .on(
       "postgres_changes",
       {

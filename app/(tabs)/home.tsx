@@ -138,6 +138,10 @@ function formatDistance(distanceMetres: number) {
   return `${(distanceMetres / 1000).toFixed(1)} km away`;
 }
 
+let backgroundSyncInFlight = false;
+let lastBackgroundSyncAt = 0;
+const BACKGROUND_SYNC_COOLDOWN_MS = 30_000;
+
 export default function Home() {
 
   useEffect(() => {
@@ -362,29 +366,40 @@ useEffect(() => {
 useEffect(() => {
   let running = false;
 
-  const syncBackgroundTracking = async () => {
-    if (running) return;
-    running = true;
+const syncBackgroundTracking = async () => {
+  if (AppState.currentState !== "active") return;
 
-    try {
-      const settings = await getNearSettings();
+  const now = Date.now();
+  if (
+    backgroundSyncInFlight ||
+    now - lastBackgroundSyncAt < BACKGROUND_SYNC_COOLDOWN_MS
+  ) {
+    return;
+  }
 
-      if (settings.shareLocation && settings.backgroundLocation) {
-        const { started, error } =
-          await restartBackgroundLocationTracking();
+  backgroundSyncInFlight = true;
+  lastBackgroundSyncAt = now;
 
-        if (error) {
-          console.log("Background tracking error:", error.message);
-        }
+  try {
+    const settings = await getNearSettings();
 
-        console.log("Background tracking started:", started);
-      } else {
-        await stopBackgroundLocationTracking();
+    if (settings.shareLocation && settings.backgroundLocation) {
+      const { started, error } =
+        await restartBackgroundLocationTracking();
+
+      if (error) {
+        console.log("Background tracking error:", error.message);
+        lastBackgroundSyncAt = 0; // allow a retry on the next active event
       }
-    } finally {
-      running = false;
+
+      console.log("Background tracking started:", started);
+    } else {
+      await stopBackgroundLocationTracking();
     }
-  };
+  } finally {
+    backgroundSyncInFlight = false;
+  }
+};
 
   syncBackgroundTracking();
 

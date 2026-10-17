@@ -613,48 +613,33 @@ useEffect(() => {
 useEffect(() => {
   if (!id) return;
 
+  let unsubscribe: (() => void) | null = null;
+
+  const handleIncoming = async (message: ChatMessage) => {
+    addMessage(message);
+    await markConversationRead(id);
+  };
+
+  const subscribe = () => {
+    unsubscribe?.();
+    unsubscribe = subscribeToMessages(id, handleIncoming);
+  };
+
   loadChat();
+  subscribe();
 
-  let unsubscribe =
-    subscribeToMessages(
-      id,
-      async (message) => {
-        addMessage(message);
+  const appStateSubscription = AppState.addEventListener(
+    "change",
+    async (state) => {
+      if (state !== "active") return;
 
-        await markConversationRead(
-          id
-        );
-      }
-    );
-
-  const appStateSubscription =
-    AppState.addEventListener(
-      "change",
-      async (state) => {
-        if (state !== "active") {
-          return;
-        }
-
-        unsubscribe();
-
-        await loadChat();
-
-        unsubscribe =
-          subscribeToMessages(
-            id,
-            async (message) => {
-              addMessage(message);
-
-              await markConversationRead(
-                id
-              );
-            }
-          );
-      }
-    );
+      subscribe();
+      await loadChat();
+    }
+  );
 
   return () => {
-    unsubscribe();
+    unsubscribe?.();
     appStateSubscription.remove();
   };
 }, [id]);
