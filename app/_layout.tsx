@@ -14,6 +14,21 @@ import {
 import { LoginTransitionProvider } from "../contexts/loginTransitionContext";
 
 import * as SplashScreen from "expo-splash-screen";
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://f2b87cd486407804fe748f2f90454a4a@o4512278923182080.ingest.de.sentry.io/4512278930587728',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: false,
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -111,7 +126,7 @@ useEffect(() => {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const [fontsLoaded] = useFonts({
     alanRegular: require("../assets/fonts/AlanSans-Regular.ttf"),
     alanSemiBold: require("../assets/fonts/AlanSans-SemiBold.ttf"),
@@ -132,4 +147,4 @@ export default function RootLayout() {
       </LoginTransitionProvider>
     </ThemeProvider>
   );
-}
+});

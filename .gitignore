@@ -52,3 +52,4 @@ supabase/.temp/
 # Build/debug logs
 build*.txt
 full-build*.txt
+.env.local
