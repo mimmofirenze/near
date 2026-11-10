@@ -1,0 +1,72 @@
+
+{
+  "language": {
+    "select": "Seleccionar idioma"
+  },
+  "login": {
+    "welcome": "¡Bienvenido de nuevo!",
+    "email": "Introduce tu correo",
+    "password": "Introduce tu contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña? Haz clic",
+    "here": "aquí",
+    "loggingIn": "Iniciando sesión...",
+    "continue": "Continuar",
+    "or": "o",
+    "google": "Continuar con Google",
+    "facebook": "Continuar con Facebook",
+    "createAccount": "Crear una cuenta",
+    "incorrectCredentials": "Correo o contraseña incorrectos.",
+    "genericError": "Algo salió mal. Inténtalo de nuevo.",
+    "googleFailed": "Error al iniciar sesión con Google.",
+    "facebookFailed": "Error al iniciar sesión con Facebook."
+  },
+  
+"register": {
+  "welcome": "¡Bienvenido, viajero!",
+  "firstName": "Introduce tu nombre",
+  "confirmPassword": "Confirma tu contraseña",
+  "confirmRequired": "Confirma tu contraseña",
+  "passwordMismatch": "Las contraseñas no coinciden",
+  "creating": "Creando cuenta...",
+  "checkEmail": "Cuenta creada. Revisa tu correo para confirmarla.",
+  "alreadyUser": "¿Ya tienes una cuenta? Inicia sesión"
+},
+
+
+"settings": {
+  "title": "Ajustes",
+  "location": "Ubicación",
+  "shareLocation": "Compartir mi ubicación",
+  "shareLocationDescription": "Permite que tus amigos vean dónde estás.",
+  "backgroundLocation": "Ubicación en segundo plano",
+  "backgroundLocationDescription": "Mantén tu ubicación actualizada cuando Near esté en segundo plano.",
+  "notifications": "Notificaciones",
+  "nearbyFriends": "Amigos cercanos",
+  "nearbyFriendsDescription": "Recibe una notificación cuando un amigo esté cerca.",
+  "appearance": "Apariencia",
+  "system": "Sistema",
+  "light": "Claro",
+  "dark": "Oscuro",
+  "language": "Idioma",
+  "languageDescription": "Elige tu idioma preferido",
+  "account": "Cuenta",
+  "logout": "Cerrar sesión",
+  "logoutConfirmation": "¿Seguro que quieres cerrar sesión?",
+  "support": "Soporte",
+  "contactSupport": "Contactar con soporte",
+  "dangerZone": "Zona de peligro",
+  "deleteAccount": "Eliminar cuenta",
+  "deleteAccountConfirmation": "Esta acción eliminará permanentemente tu cuenta de Near y todos los datos asociados. No se puede deshacer.",
+  "delete": "Eliminar",
+  "notLoggedIn": "No has iniciado sesión.",
+  "deleteAccountError": "No hemos podido eliminar tu cuenta. Inténtalo de nuevo.",
+  "locationSharingOff": "Ubicación compartida desactivada",
+  "locationSharingOffDescription": "Activa la ubicación compartida antes de habilitar la ubicación en segundo plano.",
+  "backgroundLocationError": "No se pudo activar la ubicación en segundo plano.",
+  "error": "Error",
+  "cancel": "Cancelar"
+}
+
+
+}
+  

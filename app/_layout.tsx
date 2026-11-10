@@ -16,6 +16,11 @@ import { LoginTransitionProvider } from "../contexts/loginTransitionContext";
 import * as SplashScreen from "expo-splash-screen";
 import * as Sentry from '@sentry/react-native';
 
+import "../i18n";
+
+import i18n from "../i18n";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 Sentry.init({
   dsn: 'https://f2b87cd486407804fe748f2f90454a4a@o4512278923182080.ingest.de.sentry.io/4512278930587728',
 
@@ -31,6 +36,7 @@ Sentry.init({
 });
 
 SplashScreen.preventAutoHideAsync();
+
 
 function RootNavigator() {
   const { theme, colorScheme } =
@@ -131,6 +137,26 @@ export default Sentry.wrap(function RootLayout() {
     alanRegular: require("../assets/fonts/AlanSans-Regular.ttf"),
     alanSemiBold: require("../assets/fonts/AlanSans-SemiBold.ttf"),
   });
+
+useEffect(() => {
+  const restoreLanguage = async () => {
+    try {
+      const savedLanguage =
+        await AsyncStorage.getItem("near_language");
+
+      if (
+        savedLanguage &&
+        ["en", "it", "es", "fr"].includes(savedLanguage)
+      ) {
+        await i18n.changeLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.error("Language restore failed:", error);
+    }
+  };
+
+  void restoreLanguage();
+}, []);
 
   useEffect(() => {
   if (fontsLoaded) SplashScreen.hideAsync();

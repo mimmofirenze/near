@@ -1,0 +1,72 @@
+
+{
+  "language": {
+    "select": "Choisir la langue"
+  },
+  "login": {
+    "welcome": "Bon retour !",
+    "email": "Saisissez votre adresse e-mail",
+    "password": "Saisissez votre mot de passe",
+    "forgotPassword": "Mot de passe oublié ? Cliquez",
+    "here": "ici",
+    "loggingIn": "Connexion en cours...",
+    "continue": "Continuer",
+    "or": "ou",
+    "google": "Continuer avec Google",
+    "facebook": "Continuer avec Facebook",
+    "createAccount": "Créer un compte",
+    "incorrectCredentials": "E-mail ou mot de passe incorrect.",
+    "genericError": "Une erreur est survenue. Réessayez.",
+    "googleFailed": "Échec de la connexion avec Google.",
+    "facebookFailed": "Échec de la connexion avec Facebook."
+  },
+  
+"register": {
+  "welcome": "Bienvenue, voyageur !",
+  "firstName": "Saisissez votre prénom",
+  "confirmPassword": "Confirmez votre mot de passe",
+  "confirmRequired": "Confirmez votre mot de passe",
+  "passwordMismatch": "Les mots de passe ne correspondent pas",
+  "creating": "Création du compte...",
+  "checkEmail": "Compte créé. Vérifiez votre e-mail pour le confirmer.",
+  "alreadyUser": "Déjà un compte ? Connectez-vous"
+},
+
+
+"settings": {
+  "title": "Paramètres",
+  "location": "Localisation",
+  "shareLocation": "Partager ma position",
+  "shareLocationDescription": "Permettez à vos amis de voir où vous êtes.",
+  "backgroundLocation": "Localisation en arrière-plan",
+  "backgroundLocationDescription": "Gardez votre position à jour lorsque Near fonctionne en arrière-plan.",
+  "notifications": "Notifications",
+  "nearbyFriends": "Amis à proximité",
+  "nearbyFriendsDescription": "Recevez une notification lorsqu'un ami est à proximité.",
+  "appearance": "Apparence",
+  "system": "Système",
+  "light": "Clair",
+  "dark": "Sombre",
+  "language": "Langue",
+  "languageDescription": "Choisissez votre langue préférée",
+  "account": "Compte",
+  "logout": "Se déconnecter",
+  "logoutConfirmation": "Voulez-vous vraiment vous déconnecter ?",
+  "support": "Assistance",
+  "contactSupport": "Contacter l'assistance",
+  "dangerZone": "Zone de danger",
+  "deleteAccount": "Supprimer le compte",
+  "deleteAccountConfirmation": "Cette action supprimera définitivement votre compte Near et toutes les données associées. Elle est irréversible.",
+  "delete": "Supprimer",
+  "notLoggedIn": "Vous n'êtes pas connecté.",
+  "deleteAccountError": "Nous n'avons pas pu supprimer votre compte. Veuillez réessayer.",
+  "locationSharingOff": "Partage de position désactivé",
+  "locationSharingOffDescription": "Activez le partage de position avant d'activer la localisation en arrière-plan.",
+  "backgroundLocationError": "Impossible d'activer la localisation en arrière-plan.",
+  "error": "Erreur",
+  "cancel": "Annuler"
+}
+
+
+}
+  

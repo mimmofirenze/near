@@ -21,6 +21,7 @@ import {
   Pressable,
   Linking,
   ScrollView,
+  Modal,
   Switch,
   Text,
   View,
@@ -37,12 +38,37 @@ import {
   useAppTheme,
 } from "../../contexts/themeContext";
 
+import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function Settings() {
   const {
     theme,
     themePreference,
     setThemePreference,
   } = useAppTheme();
+
+const { t, i18n } = useTranslation();
+
+const [languageModalVisible, setLanguageModalVisible] =
+  useState(false);
+
+const languages = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+];
+
+const changeLanguage = async (language: string) => {
+  try {
+    await AsyncStorage.setItem("near_language", language);
+    await i18n.changeLanguage(language);
+    setLanguageModalVisible(false);
+  } catch (error) {
+    console.error("Could not change language:", error);
+  }
+};
 
   const [shareLocation, setShareLocation] =
     useState(true);
@@ -121,8 +147,8 @@ export default function Settings() {
   ) => {
     if (!shareLocation && value) {
       Alert.alert(
-        "Location sharing is off",
-        "Turn on location sharing before enabling background location."
+        t("settings.locationSharingOff"),
+        t("settings.locationSharingOffDescription")
       );
 
       return;
@@ -134,9 +160,8 @@ export default function Settings() {
 
       if (error || !started) {
         Alert.alert(
-          "Background location",
-          error?.message ??
-            "Could not enable background location."
+          t("settings.backgroundLocation"),
+          error?.message ?? t("settings.backgroundLocationError")
         );
 
         return;
@@ -171,20 +196,20 @@ export default function Settings() {
 
   const confirmLogout = () => {
     Alert.alert(
-      "Log out",
-      "Are you sure you want to log out?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Log out",
-          style: "destructive",
-          onPress: handleLogout,
-        },
-      ]
-    );
+        t("settings.logout"),
+        t("settings.logoutConfirmation"),
+        [
+          {
+            text: t("settings.cancel"),
+            style: "cancel",
+          },
+          {
+            text: t("settings.logout"),
+            style: "destructive",
+            onPress: handleLogout,
+          },
+        ]
+      );
   };
 
 const deleteAccount = async () => {
@@ -194,7 +219,10 @@ const deleteAccount = async () => {
     } = await supabase.auth.getSession();
 
     if (!session) {
-      Alert.alert("Error", "You are not logged in.");
+      Alert.alert(
+        t("settings.error"),
+        t("settings.notLoggedIn")
+      );
       return;
     }
 
@@ -205,8 +233,8 @@ const deleteAccount = async () => {
       console.error("Delete account error:", error);
 
       Alert.alert(
-        "Error",
-        "We couldn't delete your account. Please try again."
+        t("settings.error"),
+        t("settings.deleteAccountError")
       );
 
       return;
@@ -223,23 +251,23 @@ const deleteAccount = async () => {
     console.error("Delete account failed:", error);
 
     Alert.alert(
-      "Error",
-      "We couldn't delete your account. Please try again."
+      t("settings.error"),
+      t("settings.deleteAccountError")
     );
   }
 };
 
 const confirmDeleteAccount = () => {
   Alert.alert(
-    "Delete account",
-    "This will permanently delete your Near account and all associated data. This action cannot be undone.",
+    t("settings.deleteAccount"),
+    t("settings.deleteAccountConfirmation"),
     [
       {
-        text: "Cancel",
+        text: t("settings.cancel"),
         style: "cancel",
       },
       {
-        text: "Delete",
+        text: t("settings.delete"),
         style: "destructive",
         onPress: deleteAccount,
       },
@@ -269,7 +297,7 @@ const confirmDeleteAccount = () => {
             },
           ]}
         >
-          Settings
+          {t("settings.title")}
         </Text>
 
         <View style={styles.section}>
@@ -281,7 +309,7 @@ const confirmDeleteAccount = () => {
               },
             ]}
           >
-            Location
+            {t("settings.location")}
           </Text>
 
           <View
@@ -309,7 +337,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Share my location
+                    {t("settings.shareLocation")}
                   </Text>
 
                   <Text
@@ -320,7 +348,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Let your friends see where you are.
+                    {t("settings.shareLocationDescription")}
                   </Text>
                 </View>
               </View>
@@ -365,7 +393,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Background location
+                    {t("settings.backgroundLocation")}
                   </Text>
 
                   <Text
@@ -376,8 +404,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Keep your location updated when Near is
-                    in the background.
+                    {t("settings.backgroundLocationDescription")}
                   </Text>
                 </View>
               </View>
@@ -409,7 +436,7 @@ const confirmDeleteAccount = () => {
               },
             ]}
           >
-            Notifications
+            {t("settings.notifications")}
           </Text>
 
           <View
@@ -437,7 +464,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Nearby friends
+                    {t("settings.nearbyFriends")}
                   </Text>
 
                   <Text
@@ -448,7 +475,7 @@ const confirmDeleteAccount = () => {
                       },
                     ]}
                   >
-                    Get notified when a friend is nearby.
+                    {t("settings.nearbyFriendsDescription")}
                   </Text>
                 </View>
               </View>
@@ -478,7 +505,7 @@ const confirmDeleteAccount = () => {
               { color: theme.text },
             ]}
           >
-            Appearance
+            {t("settings.appearance")}
           </Text>
 
           <View
@@ -492,17 +519,17 @@ const confirmDeleteAccount = () => {
             {(
               [
                 {
-                  label: "System",
+                  label: t("settings.system"),
                   value: "system",
                   icon: "phone-portrait-outline",
                 },
                 {
-                  label: "Light",
+                  label: t("settings.light"),
                   value: "light",
                   icon: "sunny-outline",
                 },
                 {
-                  label: "Dark",
+                  label: t("settings.dark"),
                   value: "dark",
                   icon: "moon-outline",
                 },
@@ -574,6 +601,71 @@ const confirmDeleteAccount = () => {
           </View>
         </View>
 
+        
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: theme.text },
+            ]}
+          >
+            {t("language.select")}
+          </Text>
+
+          <View
+            style={[
+              styles.settingCard,
+              { borderColor: theme.text },
+            ]}
+          >
+            <Pressable
+              style={styles.settingRow}
+              onPress={() => setLanguageModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t("language.select")}
+            >
+              <View style={styles.settingInfo}>
+                <Ionicons
+                  name="globe-outline"
+                  size={24}
+                  color={theme.text}
+                />
+
+                <View style={styles.settingTextContainer}>
+                  <Text
+                    style={[
+                      styles.settingTitle,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {t("settings.language")}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.settingDescription,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {t("settings.languageDescription")}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{ color: theme.text, fontWeight: "600" }}>
+                {i18n.resolvedLanguage?.toUpperCase() ?? "EN"}
+              </Text>
+
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.text}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+
         <View style={styles.section}>
           <Text
             style={[
@@ -583,7 +675,7 @@ const confirmDeleteAccount = () => {
               },
             ]}
           >
-            Account
+            {t("settings.account")}
           </Text>
 
           <Pressable
@@ -611,7 +703,7 @@ const confirmDeleteAccount = () => {
                 },
               ]}
             >
-              Log out
+              {t("settings.account")}
             </Text>
           </Pressable>
         </View>
@@ -625,7 +717,7 @@ const confirmDeleteAccount = () => {
               },
             ]}
           >
-            Support
+            {t("settings.support")}
           </Text>
 
           <Pressable
@@ -657,7 +749,7 @@ const confirmDeleteAccount = () => {
                 },
               ]}
             >
-              Contact support
+              {t("settings.contactSupport")}
             </Text>
           </Pressable>
         </View>
@@ -671,7 +763,7 @@ const confirmDeleteAccount = () => {
               },
             ]}
           >
-            Danger zone
+            {t("settings.dangerZone")}
           </Text>
 
           <Pressable
@@ -699,11 +791,88 @@ const confirmDeleteAccount = () => {
                 },
               ]}
             >
-              Delete account
+              {t("settings.deleteAccount")}
             </Text>
           </Pressable>
         </View>
       </ScrollView>
+
+    
+<Modal
+  visible={languageModalVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setLanguageModalVisible(false)}
+>
+  <Pressable
+    onPress={() => setLanguageModalVisible(false)}
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      paddingHorizontal: 32,
+    }}
+  >
+    <Pressable
+      onPress={(event) => event.stopPropagation()}
+      style={{
+        backgroundColor: theme.background,
+        borderRadius: 18,
+        padding: 20,
+        gap: 8,
+      }}
+    >
+      <Text
+        style={{
+          color: theme.text,
+          fontSize: 20,
+          fontWeight: "700",
+          marginBottom: 12,
+        }}
+      >
+        {t("language.select")}
+      </Text>
+
+      {languages.map((language) => (
+        <Pressable
+          key={language.code}
+          onPress={() => changeLanguage(language.code)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 14,
+            paddingHorizontal: 10,
+            gap: 12,
+          }}
+        >
+          <Text style={{ fontSize: 22 }}>
+            {language.flag}
+          </Text>
+
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 16,
+              flex: 1,
+            }}
+          >
+            {language.label}
+          </Text>
+
+          {i18n.resolvedLanguage === language.code && (
+            <Ionicons
+              name="checkmark-circle"
+              color="#2563EB"
+              size={22}
+            />
+          )}
+        </Pressable>
+      ))}
+    </Pressable>
+  </Pressable>
+</Modal>
+
+
     </SafeAreaView>
   );
 }

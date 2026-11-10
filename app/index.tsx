@@ -3,6 +3,7 @@ import { View,
   Text, 
   TextInput,
   Pressable,
+  Modal,
   Keyboard, 
   TouchableWithoutFeedback
 
@@ -32,6 +33,9 @@ import { useAppTheme } from "../contexts/themeContext";
 
 import { useLoginTransition } from "../contexts/loginTransitionContext";
 
+import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 let authFlowInProgress = false;
 
 
@@ -58,6 +62,28 @@ const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [checkingSession, setCheckingSession] = useState(true);
+
+const { t, i18n } = useTranslation();
+
+const [languageModalVisible, setLanguageModalVisible] =
+  useState(false);
+
+const languages = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+];
+
+const changeLanguage = async (language: string) => {
+  try {
+    await AsyncStorage.setItem("near_language", language);
+    await i18n.changeLanguage(language);
+    setLanguageModalVisible(false);
+  } catch (error) {
+    console.error("Could not change language:", error);
+  }
+};
 
 
 useFocusEffect(
@@ -117,7 +143,7 @@ const handleLogin = async () => {
     if (error) {
       cancelTransition(); // wrong password: hide it again
       authFlowInProgress = false;
-      setLoginError("Incorrect email or password.");
+      setLoginError(t("login.incorrectCredentials"));
       return;
     }
 
@@ -127,7 +153,7 @@ const handleLogin = async () => {
     console.error("Login error:", error);
     cancelTransition();
     authFlowInProgress = false;
-    setLoginError("Something went wrong. Please try again.");
+    setLoginError(t("login.genericError"));
   } finally {
     setLoading(false);
   }
@@ -142,7 +168,7 @@ const handleLogin = async () => {
         const { error } = await signInWithGoogle();
 
         if (error) {
-          setLoginError(error.message);
+          setLoginError(t("login.googleFailed"));
           return;
         }
 
@@ -150,7 +176,7 @@ const handleLogin = async () => {
         router.replace("/(tabs)/home");
       } catch (error) {
         console.error("Google login error:", error);
-        setLoginError("Google login failed.");
+        setLoginError(t("login.googleFailed"));
       } finally {
         authFlowInProgress = false;
         setLoading(false);
@@ -166,7 +192,7 @@ const handleLogin = async () => {
       await signInWithFacebook();
 
     if (error) {
-      setLoginError(error.message);
+      setLoginError(t("login.facebookFailed"));
       return;
     }
     startTransition();
@@ -178,7 +204,7 @@ const handleLogin = async () => {
     );
 
     setLoginError(
-      "Facebook login failed."
+      t("login.facebookFailed")
     );
   } finally {
     setLoading(false);
@@ -207,20 +233,137 @@ const handleLogin = async () => {
 
         <View style={styles.container}>
 
+          
+<View
+  style={{
+    position: "absolute",
+    top: 20,
+    right: 15,
+    zIndex: 10,
+  }}
+>
+  <Pressable
+    onPress={() => setLanguageModalVisible(true)}
+    accessibilityRole="button"
+    accessibilityLabel={t("language.select")}
+    style={{
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.text,
+      gap: 6,
+    }}
+  >
+    <Ionicons
+      name="globe-outline"
+      size={18}
+      color={theme.text}
+    />
+
+    <Text style={{ color: theme.text, fontWeight: "600" }}>
+      {i18n.resolvedLanguage?.toUpperCase() ?? "EN"}
+    </Text>
+
+    <Ionicons
+      name="chevron-down"
+      size={16}
+      color={theme.text}
+    />
+  </Pressable>
+</View>
+
+<Modal
+  visible={languageModalVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setLanguageModalVisible(false)}
+>
+  <Pressable
+    onPress={() => setLanguageModalVisible(false)}
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      paddingHorizontal: 32,
+    }}
+  >
+    <Pressable
+      onPress={(event) => event.stopPropagation()}
+      style={{
+        backgroundColor: theme.background,
+        borderRadius: 18,
+        padding: 20,
+        gap: 8,
+      }}
+    >
+      <Text
+        style={{
+          color: theme.text,
+          fontSize: 20,
+          fontWeight: "700",
+          marginBottom: 12,
+        }}
+      >
+        {t("language.select")}
+      </Text>
+
+      {languages.map((language) => (
+        <Pressable
+          key={language.code}
+          onPress={() => changeLanguage(language.code)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingVertical: 14,
+            paddingHorizontal: 10,
+            gap: 12,
+          }}
+        >
+          <Text style={{ fontSize: 22 }}>
+            {language.flag}
+          </Text>
+
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 16,
+              flex: 1,
+            }}
+          >
+            {language.label}
+          </Text>
+
+          {i18n.resolvedLanguage === language.code && (
+            <Ionicons
+              name="checkmark-circle"
+              color="#2563EB"
+              size={22}
+            />
+          )}
+        </Pressable>
+      ))}
+    </Pressable>
+  </Pressable>
+</Modal>
+
+
           <Image
             source={logo}
             style={styles.logo}
             resizeMode="contain"
           />
 
-          <Text style={[ styles.title, { color: theme.text }]}>Welcome back!</Text>
+          <Text style={[ styles.title, { color: theme.text }]}>{t("login.welcome")}</Text>
 
           <TextInput
             style={[
               styles.input,
               emailError ? styles.inputError : null,
             ]}
-            placeholder="Enter email"
+            placeholder="email"
             placeholderTextColor="#8F8F8F"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -246,7 +389,7 @@ const handleLogin = async () => {
           >
             <TextInput
               style={styles.passwordInput}
-              placeholder="Enter password"
+              placeholder="password"
               placeholderTextColor="#8F8F8F"
               secureTextEntry={!showPassword}
               value={password}
@@ -280,14 +423,14 @@ const handleLogin = async () => {
           ) : null}
           
           <Text style={[styles.forgotText , { color: theme.text }]}>
-            Forgot your password? Click{" "}
+            {t("login.forgotPassword")}{" "}
             <Text
               style={styles.linkText}
               onPress={() => {
                 router.push('/forgot-password');
               }}
             >
-              here
+              {t("login.here")}
             </Text>
           </Text>
 
@@ -308,13 +451,13 @@ const handleLogin = async () => {
             disabled={!isFormComplete || loading}
           >
             <Text style={styles.continueButtonText}>
-              {loading ? "Logging in..." : "Continue"}
+              {loading ? t("login.loggingIn") : t("login.continue")}
             </Text>
           </Pressable>
 
           <View style={styles.dividerContainer}>
             <View style={styles.divider} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t("login.or")}</Text>
             <View style={styles.divider} />
           </View>
               
@@ -331,7 +474,7 @@ const handleLogin = async () => {
                 style={styles.socialIcon}
                 resizeMode="contain"
               />
-              <Text style={[styles.socialButtonText, { color: theme.text }]}>Continue with Google</Text>
+              <Text style={[styles.socialButtonText, { color: theme.text }]}>{t("login.google")}</Text>
             </Pressable>
           </LinearGradient>
 
@@ -350,14 +493,14 @@ const handleLogin = async () => {
                 resizeMode="contain"
               />
               <Text style={[styles.socialButtonText, { color: theme.text }]}>
-                Continue with Facebook
+                {t("login.facebook")}
               </Text>
             </Pressable>
           </LinearGradient>
 
           <Pressable style={styles.createAccountButton}
           onPress={() => router.push("/register")}>
-            <Text style={styles.createAccountText}>Create new account</Text>
+            <Text style={styles.createAccountText}>{t("login.createAccount")}</Text>
           </Pressable>
 
         </View>

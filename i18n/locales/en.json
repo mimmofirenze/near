@@ -1,0 +1,72 @@
+
+{
+  "language": {
+    "select": "Select language"
+  },
+  "login": {
+    "welcome": "Welcome back!",
+    "email": "Enter email",
+    "password": "Enter password",
+    "forgotPassword": "Forgot your password? Click",
+    "here": "here",
+    "loggingIn": "Logging in...",
+    "continue": "Continue",
+    "or": "or",
+    "google": "Continue with Google",
+    "facebook": "Continue with Facebook",
+    "createAccount": "Create new account",
+    "incorrectCredentials": "Incorrect email or password.",
+    "genericError": "Something went wrong. Please try again.",
+    "googleFailed": "Google login failed.",
+    "facebookFailed": "Facebook login failed."
+  },
+  
+"register": {
+  "welcome": "Welcome traveller!",
+  "firstName": "Enter first name",
+  "confirmPassword": "Confirm password",
+  "confirmRequired": "Confirm your password",
+  "passwordMismatch": "Passwords do not match",
+  "creating": "Creating account...",
+  "checkEmail": "Account created. Check your email to confirm your account.",
+  "alreadyUser": "Already a user? Login"
+},
+
+
+"settings": {
+  "title": "Settings",
+  "location": "Location",
+  "shareLocation": "Share my location",
+  "shareLocationDescription": "Let your friends see where you are.",
+  "backgroundLocation": "Background location",
+  "backgroundLocationDescription": "Keep your location updated when Near is in the background.",
+  "notifications": "Notifications",
+  "nearbyFriends": "Nearby friends",
+  "nearbyFriendsDescription": "Get notified when a friend is nearby.",
+  "appearance": "Appearance",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "language": "Language",
+  "languageDescription": "Choose your preferred language",
+  "account": "Account",
+  "logout": "Log out",
+  "logoutConfirmation": "Are you sure you want to log out?",
+  "support": "Support",
+  "contactSupport": "Contact support",
+  "dangerZone": "Danger zone",
+  "deleteAccount": "Delete account",
+  "deleteAccountConfirmation": "This will permanently delete your Near account and all associated data. This action cannot be undone.",
+  "delete": "Delete",
+  "notLoggedIn": "You are not logged in.",
+  "deleteAccountError": "We couldn't delete your account. Please try again.",
+  "locationSharingOff": "Location sharing is off",
+  "locationSharingOffDescription": "Turn on location sharing before enabling background location.",
+  "backgroundLocationError": "Could not enable background location.",
+  "error": "Error",
+  "cancel": "Cancel"
+}
+
+
+}
+  

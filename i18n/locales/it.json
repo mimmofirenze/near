@@ -1,0 +1,72 @@
+
+{
+  "language": {
+    "select": "Seleziona lingua"
+  },
+  "login": {
+    "welcome": "Bentornato!",
+    "email": "Inserisci email",
+    "password": "Inserisci password",
+    "forgotPassword": "Hai dimenticato la password? Clicca",
+    "here": "qui",
+    "loggingIn": "Accesso in corso...",
+    "continue": "Continua",
+    "or": "oppure",
+    "google": "Continua con Google",
+    "facebook": "Continua con Facebook",
+    "createAccount": "Crea un nuovo account",
+    "incorrectCredentials": "Email o password non corretti.",
+    "genericError": "Qualcosa è andato storto. Riprova.",
+    "googleFailed": "Accesso con Google non riuscito.",
+    "facebookFailed": "Accesso con Facebook non riuscito."
+  },
+
+"register": {
+  "welcome": "Benvenuto viaggiatore!",
+  "firstName": "Inserisci il nome",
+  "confirmPassword": "Conferma password",
+  "confirmRequired": "Conferma la password",
+  "passwordMismatch": "Le password non coincidono",
+  "creating": "Creazione account...",
+  "checkEmail": "Account creato. Controlla la tua email per confermarlo.",
+  "alreadyUser": "Hai già un account? Accedi"
+},
+
+
+"settings": {
+  "title": "Impostazioni",
+  "location": "Posizione",
+  "shareLocation": "Condividi la mia posizione",
+  "shareLocationDescription": "Permetti ai tuoi amici di vedere dove ti trovi.",
+  "backgroundLocation": "Posizione in background",
+  "backgroundLocationDescription": "Mantieni aggiornata la tua posizione anche quando Near è in background.",
+  "notifications": "Notifiche",
+  "nearbyFriends": "Amici nelle vicinanze",
+  "nearbyFriendsDescription": "Ricevi una notifica quando un amico è nelle vicinanze.",
+  "appearance": "Aspetto",
+  "system": "Sistema",
+  "light": "Chiaro",
+  "dark": "Scuro",
+  "language": "Lingua",
+  "languageDescription": "Scegli la lingua che preferisci",
+  "account": "Account",
+  "logout": "Esci",
+  "logoutConfirmation": "Sei sicuro di voler uscire?",
+  "support": "Assistenza",
+  "contactSupport": "Contatta l'assistenza",
+  "dangerZone": "Zona pericolosa",
+  "deleteAccount": "Elimina account",
+  "deleteAccountConfirmation": "Questa operazione eliminerà definitivamente il tuo account Near e tutti i dati associati. Non può essere annullata.",
+  "delete": "Elimina",
+  "notLoggedIn": "Non hai effettuato l'accesso.",
+  "deleteAccountError": "Non è stato possibile eliminare il tuo account. Riprova.",
+  "locationSharingOff": "Condivisione della posizione disattivata",
+  "locationSharingOffDescription": "Attiva la condivisione della posizione prima di abilitare la posizione in background.",
+  "backgroundLocationError": "Impossibile attivare la posizione in background.",
+  "error": "Errore",
+  "cancel": "Annulla"
+}
+
+
+}
+  

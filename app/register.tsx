@@ -28,7 +28,11 @@ import { useAppTheme } from "../contexts/themeContext";
 
 import { useLoginTransition } from "../contexts/loginTransitionContext";
 
+import { useTranslation } from "react-i18next";
+
 export default function RegisterScreen() {
+
+  const { t } = useTranslation();
 
   const { theme, colorScheme } =
   useAppTheme();
@@ -66,9 +70,9 @@ export default function RegisterScreen() {
     const newPasswordError = validatePassword(password);
 
     const newConfirmPasswordError = !confirmPassword
-      ? "Confirm your password"
+      ? t("register.confirmRequired")
       : password !== confirmPassword
-        ? "Passwords do not match"
+        ? t("register.passwordMismatch")
         : "";
 
     setFirstNameError(newFirstNameError);
@@ -108,12 +112,12 @@ export default function RegisterScreen() {
         router.replace("/(tabs)/home");
       } else {
         setRegisterError(
-          "Account created. Check your email to confirm your account."
+          t("register.checkEmail")
         );
       }
     } catch (error) {
       console.error(error);
-      setRegisterError("Something went wrong. Please try again.");
+      setRegisterError(t("login.genericError"));
     } finally {
       setLoading(false);
     }
@@ -127,14 +131,14 @@ export default function RegisterScreen() {
     const { error } = await signInWithGoogle();
 
     if (error) {
-      setRegisterError(error.message);
+      setRegisterError(t("login.googleFailed"));
       return;
     }
     startTransition();
     router.replace("/(tabs)/home");
   } catch (error) {
     console.error("Google login error:", error);
-    setRegisterError("Google login failed.");
+    setRegisterError(t("login.googleFailed"));
   } finally {
     setLoading(false);
   }
@@ -149,7 +153,7 @@ const handleFacebookLogin = async () => {
       await signInWithFacebook();
 
     if (error) {
-      setRegisterError(error.message);
+      setRegisterError(t("login.facebookFailed"));
       return;
     }
     startTransition();
@@ -161,7 +165,7 @@ const handleFacebookLogin = async () => {
     );
 
     setRegisterError(
-      "Facebook login failed."
+      t("login.facebookFailed")
     );
   } finally {
     setLoading(false);
@@ -186,7 +190,7 @@ const handleFacebookLogin = async () => {
             { color: theme.text },
           ]}
         >
-          Welcome traveller!
+          {t("register.welcome")}
         </Text>
 
         <TextInput
@@ -194,7 +198,7 @@ const handleFacebookLogin = async () => {
               styles.input,
               firstNameError ? styles.inputError : null,
             ]}
-            placeholder="Enter first name"
+            placeholder={t("register.firstName")}
             placeholderTextColor="#8F8F8F"
             autoCapitalize="words"
             autoCorrect={false}
@@ -217,7 +221,7 @@ const handleFacebookLogin = async () => {
               styles.input,
               emailError ? styles.inputError : null,
             ]}
-            placeholder="Enter email"
+            placeholder={t("login.email")}
             placeholderTextColor="#8F8F8F"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -243,7 +247,7 @@ const handleFacebookLogin = async () => {
           >
             <TextInput
               style={styles.passwordInput}
-              placeholder="Enter password"
+              placeholder={t("login.password")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={!showPassword}
               value={password}
@@ -285,7 +289,7 @@ const handleFacebookLogin = async () => {
           >
             <TextInput
               style={styles.passwordInput}
-              placeholder="Confirm password"
+              placeholder={t("register.confirmPassword")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={!showConfirmPassword}
               value={confirmPassword}
@@ -331,7 +335,7 @@ const handleFacebookLogin = async () => {
             disabled={!isFormComplete || loading}
           >
             <Text style={styles.continueButtonText}>
-              {loading ? "Creating account..." : "Continue"}
+              {loading ? t("register.creating") : t("login.continue")}
             </Text>
           </Pressable>
 
@@ -345,7 +349,7 @@ const handleFacebookLogin = async () => {
           <View style={styles.divider} />
 
           <Text style={styles.dividerText}>
-            or
+            {t("login.or")}
           </Text>
 
           <View style={styles.divider} />
@@ -373,7 +377,7 @@ const handleFacebookLogin = async () => {
                 { color: theme.text },
               ]}
             >
-              Continue with Google
+              {t("login.google")}
             </Text>
           </Pressable>
         </LinearGradient>
@@ -400,7 +404,7 @@ const handleFacebookLogin = async () => {
                 { color: theme.text },
               ]}
             >
-              Continue with Facebook
+              {t("login.facebook")}
             </Text>
           </Pressable>
         </LinearGradient>
@@ -410,7 +414,7 @@ const handleFacebookLogin = async () => {
           onPress={() => router.back()}
         >
           <Text style={styles.loginButtonText}>
-            Already a user? Login
+            {t("register.alreadyUser")}
           </Text>
         </Pressable>
 
