@@ -54,6 +54,8 @@ import {
   setMemoryCachedData,
 } from "../../utils/cache";
 
+import { useTranslation } from "react-i18next";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -94,6 +96,8 @@ const memoryProfile =
 
   const { theme, colorScheme } =
     useAppTheme();
+
+    const { t, i18n } = useTranslation();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -198,7 +202,7 @@ useEffect(() => {
 
   const loadUserProfile = async () => {
     if (!id) {
-      setErrorMessage("Invalid user.");
+      setErrorMessage(t("userProfile.invalidUser"));
       setLoading(false);
       return;
     }
@@ -293,7 +297,7 @@ useEffect(() => {
       if (!cached) {
         setErrorMessage(
           profileError?.message ??
-            "Could not load profile."
+            t("userProfile.loadError")
         );
       }
 
@@ -406,7 +410,7 @@ useEffect(() => {
   return () => {
     isActive = false;
   };
-}, [id]);
+}, [id, t]);
 
   const handleAddFriend = async () => {
   if (!id || sendingRequest) return;
@@ -428,7 +432,7 @@ useEffect(() => {
     );
   } catch {
     setErrorMessage(
-      "Could not send friend request."
+      t("friends.sendError")
     );
   } finally {
     setSendingRequest(false);
@@ -456,7 +460,7 @@ const handleAcceptRequest = async () => {
     setIncomingRequestId(null);
   } catch {
     setErrorMessage(
-      "Could not accept the friend request."
+      t("friends.acceptError")
     );
   } finally {
     setProcessingRequest(false);
@@ -484,7 +488,7 @@ const handleDeclineRequest = async () => {
     setIncomingRequestId(null);
   } catch {
     setErrorMessage(
-      "Could not decline the friend request."
+      t("friends.declineError")
     );
   } finally {
     setProcessingRequest(false);
@@ -495,19 +499,20 @@ const handleRemoveFriend = () => {
   if (!id) return;
 
   Alert.alert(
-    "Remove friend",
-    `Remove ${profile?.first_name ?? "this user"} from your friends?`,
+    t("userProfile.removeFriend"),
+    t("userProfile.removeConfirmation", {
+      name: profile?.first_name ?? t("userProfile.thisUser"),
+    }),
     [
       {
-        text: "Cancel",
+        text: t("settings.cancel"),
         style: "cancel",
       },
       {
-        text: "Remove",
+        text: t("userProfile.remove"),
         style: "destructive",
         onPress: async () => {
-          const { error } =
-            await removeFriendByUserId(id);
+          const { error } = await removeFriendByUserId(id);
 
           if (error) {
             setErrorMessage(error.message);
@@ -541,7 +546,7 @@ const handleOpenChat = async () => {
 
   if (error || !conversationId) {
     setErrorMessage(
-      error?.message ?? "Could not open chat."
+      error?.message ?? t("userProfile.chatError")
     );
     return;
   }
@@ -878,7 +883,7 @@ if (loading) {
                     fontSize: 15,
                   }}
                 >
-                  Friends
+                  {t("friends.title")}
                 </Text>
               </View>
             ) : null}
@@ -929,7 +934,7 @@ if (loading) {
             fontSize: 15,
           }}
         >
-          Accept
+          {t("userProfile.accept")}
         </Text>
       </View>
     </Pressable>
@@ -970,7 +975,7 @@ if (loading) {
             fontSize: 15,
           }}
         >
-          Decline
+          {t("userProfile.decline")}
         </Text>
       </View>
     </Pressable>
@@ -1025,12 +1030,12 @@ if (loading) {
         }}
       >
         {sendingRequest
-          ? "Sending..."
+          ? t("userProfile.sending")
           : relationshipStatus === "friend"
-          ? "Friends"
+          ? t("friends.title")
           : relationshipStatus === "outgoing_pending"
-          ? "Requested"
-          : "Add friend"}
+          ? t("userProfile.requested")
+          : t("userProfile.addFriend")}
       </Text>
     </View>
   </Pressable>
@@ -1076,7 +1081,7 @@ if (loading) {
             fontSize: 15,
           }}
         >
-          See on map
+          {t("userProfile.seeOnMap")}
         </Text>
       </View>
     </Pressable>
@@ -1113,7 +1118,7 @@ if (loading) {
             fontSize: 15,
           }}
         >
-          Chat
+          {t("userProfile.chat")}
         </Text>
       </View>
     </Pressable>
@@ -1126,7 +1131,7 @@ if (loading) {
             { color: theme.text },
           ]}
         >
-          {profile?.bio || "No bio yet"}
+          {profile?.bio || t("userProfile.noBio")}
         </Text>
 
         <View style={styles.locationSection}>
@@ -1136,7 +1141,7 @@ if (loading) {
               { color: theme.text },
             ]}
           >
-            Last seen in:
+            {t("userProfile.lastSeen")}
           </Text>
 
           <Text
@@ -1145,7 +1150,7 @@ if (loading) {
               { color: theme.text },
             ]}
           >
-            {lastSeenPlace ?? "Location unavailable"}
+            {lastSeenPlace ?? t("userProfile.locationUnavailable")}
           </Text>
 
           {lastSeenAt ? (
@@ -1155,14 +1160,17 @@ if (loading) {
                 { color: theme.text },
               ]}
             >
-              {`(Last update: ${new Date(
-                lastSeenAt
-              ).toLocaleTimeString([], {
-                day: "2-digit",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })})`}
+              {t("userProfile.lastUpdate", {
+                date: new Date(lastSeenAt).toLocaleString(
+                  i18n.resolvedLanguage ?? "en",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                ),
+              })}
             </Text>
           ) : null}
         </View>
@@ -1174,8 +1182,9 @@ if (loading) {
               { color: theme.text },
             ]}
           >
-            {visitedCountries.length} Countries
-            visited:
+            {t("userProfile.countriesVisited", {
+              count: visitedCountries.length,
+            })}
           </Text>
 
           <View style={styles.flagsRow}>
@@ -1203,7 +1212,16 @@ if (loading) {
           ]}
         >
           {memberSince
-            ? `Near member since ${memberSince}`
+            ? t("userProfile.memberSince", {
+                date: new Date(profile!.created_at).toLocaleDateString(
+                  i18n.resolvedLanguage ?? "en",
+                  {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  }
+                ),
+              })
             : ""}
         </Text>
         {relationshipStatus === "friend" ? (
@@ -1240,7 +1258,7 @@ if (loading) {
                   fontSize: 15,
                 }}
               >
-                Remove friend
+                {t("userProfile.removeFriend")}
               </Text>
             </View>
           </Pressable>

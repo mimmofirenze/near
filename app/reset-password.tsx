@@ -19,8 +19,12 @@ import { styles } from "../styles/loginStyles";
 import { useAppTheme } from "../contexts/themeContext";
 import { validatePassword } from "../utils/validation";
 
+import { useTranslation } from "react-i18next";
+
 export default function ResetPasswordScreen() {
   const { theme } = useAppTheme();
+
+  const { t } = useTranslation();
 
   const url = Linking.useLinkingURL();
 
@@ -135,13 +139,12 @@ export default function ResetPasswordScreen() {
         setVerifying(false);
 
         Alert.alert(
-          "Invalid reset link",
-          "This password reset link is invalid or has expired.",
+          t("resetPassword.invalidLink"),
+          t("resetPassword.invalidLinkDescription"),
           [
             {
-              text: "Back to login",
-              onPress: () =>
-                router.replace("/"),
+              text: t("resetPassword.backToLogin"),
+              onPress: () => router.replace("/"),
             },
           ]
         );
@@ -149,10 +152,11 @@ export default function ResetPasswordScreen() {
     };
 
     handleRecoveryLink();
-  }, [url]);
+  }, [url, t]);
 
   const handleUpdatePassword =
     async () => {
+      Keyboard.dismiss();
       setPasswordError("");
 
       const newPasswordError =
@@ -170,7 +174,7 @@ export default function ResetPasswordScreen() {
         confirmPassword
       ) {
         setPasswordError(
-          "Passwords do not match."
+          t("resetPassword.passwordMismatch")
         );
         return;
       }
@@ -190,8 +194,8 @@ export default function ResetPasswordScreen() {
           );
 
           Alert.alert(
-            "Error",
-            "We couldn't update your password. Please try again."
+            t("settings.error"),
+            t("resetPassword.updateError")
           );
 
           return;
@@ -200,13 +204,12 @@ export default function ResetPasswordScreen() {
         await supabase.auth.signOut();
 
         Alert.alert(
-          "Password updated",
-          "Your password has been changed successfully.",
+          t("resetPassword.success"),
+          t("resetPassword.successDescription"),
           [
             {
-              text: "Log in",
-              onPress: () =>
-                router.replace("/"),
+              text: t("resetPassword.login"),
+              onPress: () => router.replace("/"),
             },
           ]
         );
@@ -217,8 +220,8 @@ export default function ResetPasswordScreen() {
         );
 
         Alert.alert(
-          "Error",
-          "Something went wrong. Please try again."
+          t("settings.error"),
+          t("login.genericError")
         );
       } finally {
         setLoading(false);
@@ -252,7 +255,7 @@ export default function ResetPasswordScreen() {
               textAlign: "center",
             }}
           >
-            Verifying reset link...
+            {t("resetPassword.verifying")}
           </Text>
         </View>
       </SafeAreaView>
@@ -310,7 +313,7 @@ export default function ResetPasswordScreen() {
               },
             ]}
           >
-            Create new password
+            {t("resetPassword.title")}
           </Text>
 
           <Text
@@ -320,8 +323,7 @@ export default function ResetPasswordScreen() {
               marginBottom: 20,
             }}
           >
-            Choose a new password for
-            your Near account.
+            {t("resetPassword.description")}
           </Text>
 
           <View
@@ -336,7 +338,7 @@ export default function ResetPasswordScreen() {
               style={
                 styles.passwordInput
               }
-              placeholder="New password"
+              placeholder={t("resetPassword.newPassword")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={
                 !showPassword
@@ -384,7 +386,7 @@ export default function ResetPasswordScreen() {
               style={
                 styles.passwordInput
               }
-              placeholder="Confirm new password"
+              placeholder={t("resetPassword.confirmPassword")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={
                 !showConfirmPassword
@@ -449,13 +451,18 @@ export default function ResetPasswordScreen() {
             }
           >
             <Text
-              style={
-                styles.continueButtonText
-              }
+              style={[
+                styles.continueButtonText,
+                {
+                  textAlign: "center",
+                  flexShrink: 1,
+                  paddingHorizontal: 10,
+                },
+              ]}
             >
               {loading
-                ? "Updating..."
-                : "Update password"}
+                ? t("resetPassword.updating")
+                : t("resetPassword.updatePassword")}
             </Text>
           </Pressable>
         </View>

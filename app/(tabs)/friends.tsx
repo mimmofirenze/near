@@ -44,6 +44,8 @@ import {
   setMemoryCachedData,
 } from "../../utils/cache";
 
+import { useTranslation } from "react-i18next";
+
 type UserProfile = {
   id: string;
   first_name: string;
@@ -88,6 +90,8 @@ export default function FriendsScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { t } = useTranslation();
 
   const memoryFriends =
   getMemoryCachedData<
@@ -252,7 +256,7 @@ const loadFriendsData =
 
       setLoadingFriends(false);
     }
-  }, []);
+  }, [t]);
 
 useFocusEffect(
   useCallback(() => {
@@ -502,7 +506,7 @@ useEffect(() => {
             },
           ]}
         >
-          ID: {profile.username ?? "No ID"}
+          ID: {profile.username ?? t("friends.noId")}
         </Text>
       </Pressable>
 
@@ -575,7 +579,7 @@ useEffect(() => {
               },
             ]}
           >
-            Friends
+            {t("friends.title")}
           </Text>
 
           <View style={styles.searchRow}>
@@ -590,7 +594,7 @@ useEffect(() => {
               <TextInput
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Add friends by ID"
+                placeholder={t("friends.searchPlaceholder")}
                 placeholderTextColor="#999999"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -634,7 +638,7 @@ useEffect(() => {
                   marginBottom: 12,
                 }}
               >
-                Search results
+                {t("friends.searchResults")}
               </Text>
 
               {searching ? (
@@ -644,7 +648,7 @@ useEffect(() => {
                     { color: theme.text },
                   ]}
                 >
-                  Searching...
+                  {t("friends.searching")}
                 </Text>
               ) : users.length === 0 ? (
                 <Text
@@ -653,7 +657,7 @@ useEffect(() => {
                     { color: theme.text },
                   ]}
                 >
-                  No users found
+                  {t("friends.noUsers")}
                 </Text>
               ) : (
                 users.map((item) => {
@@ -698,7 +702,7 @@ useEffect(() => {
                           },
                         ]}
                         >
-                          View
+                          {t("friends.view")}
                         </Text>
                       </Pressable>
                     ) : relationshipStatus ===
@@ -787,7 +791,7 @@ useEffect(() => {
                       marginBottom: 12,
                     }}
                   >
-                    Friend requests
+                    {t("friends.requests")}
                   </Text>
 
                   {incomingRequests.map((request) => {
@@ -880,7 +884,7 @@ useEffect(() => {
                     marginBottom: 12,
                   }}
                 >
-                  Friends
+                  {t("friends.title")}
                 </Text>
 
                 {loadingFriends ? (
@@ -897,7 +901,7 @@ useEffect(() => {
                       { color: theme.text },
                     ]}
                   >
-                    You have no friends yet
+                    {t("friends.noFriends")}
                   </Text>
                 ) : (
                   friends.map((friend) => (
@@ -932,7 +936,7 @@ useEffect(() => {
                               },
                             ]}
                           >
-                            View
+                            {t("friends.view")}
                           </Text>
                         </Pressable>
                       )}

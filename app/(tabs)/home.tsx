@@ -51,6 +51,8 @@ import { supabase } from "../../lib/supabase";
 
 import { useLoginTransition } from "../../contexts/loginTransitionContext";
 
+import { useTranslation } from "react-i18next";
+
 
 const DEFAULT_NEARBY_RADIUS_METERS = 500;
 
@@ -132,10 +134,10 @@ function calculateDistanceMeters(
 
 function formatDistance(distanceMetres: number) {
   if (distanceMetres < 1000) {
-    return `${Math.round(distanceMetres)} m away`;
+    return `${Math.round(distanceMetres)} m`;
   }
 
-  return `${(distanceMetres / 1000).toFixed(1)} km away`;
+  return `${(distanceMetres / 1000).toFixed(1)} km`;
 }
 
 let backgroundSyncInFlight = false;
@@ -192,6 +194,8 @@ useEffect(() => {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { t, i18n } = useTranslation();
 
   const { friendId } = useLocalSearchParams<{
   friendId?: string;
@@ -269,7 +273,7 @@ useEffect(() => {
       if (error || !location) {
         setLocationError(
           error?.message ??
-            "Could not get your current location."
+            t("home.locationError")
         );
 
         return;
@@ -291,7 +295,7 @@ useEffect(() => {
       );
     } catch {
       setLocationError(
-        "Something went wrong while loading your location."
+        t("home.locationLoadError")
       );
     } finally {
       setLoadingLocation(false);
@@ -584,7 +588,7 @@ useEffect(() => {
             fontFamily: "alanRegular",
           }}
         >
-          Finding your location...
+          {t("home.findingLocation")}
         </Text>
       </SafeAreaView>
     );
@@ -610,7 +614,7 @@ useEffect(() => {
           }}
         >
           {locationError ||
-            "Your location is currently unavailable."}
+            t("home.locationUnavailable")}
         </Text>
 
         <Pressable
@@ -628,7 +632,7 @@ useEffect(() => {
               fontFamily: "alanRegular",
             }}
           >
-            Try again
+            {t("home.tryAgain")}
           </Text>
         </Pressable>
       </SafeAreaView>
@@ -894,7 +898,7 @@ useEffect(() => {
               >
                 ID:{" "}
                 {selectedFriend.profile
-                  .username ?? "No ID"}
+                  .username ?? t("friends.noId")}
               </Text>
 
               {selectedFriendDistance !==
@@ -907,9 +911,9 @@ useEffect(() => {
                     fontFamily: "alanRegular",
                   }}
                 >
-                  {formatDistance(
-                    selectedFriendDistance
-                  )}
+                  {t("home.distanceAway", {
+                    distance: formatDistance(selectedFriendDistance),
+                  })}
                 </Text>
               ) : null}
             </View>
@@ -923,15 +927,19 @@ useEffect(() => {
               fontFamily: "alanRegular",
             }}
           >
-            Last update:{" "}
-            {new Date(
-              selectedFriend.updated_at
-            ).toLocaleString([], {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
+            {t("home.lastUpdate", {
+              date: new Date(
+                selectedFriend.updated_at
+              ).toLocaleString(
+                i18n.resolvedLanguage ?? "en",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              ),
             })}
           </Text>
 
@@ -960,7 +968,7 @@ useEffect(() => {
                 fontFamily: "alanRegular",
               }}
             >
-              View profile
+              {t("home.viewProfile")}
             </Text>
           </Pressable>
         </View>
@@ -993,7 +1001,7 @@ useEffect(() => {
               marginBottom: 10,
             }}
           >
-            Near range
+            {t("home.nearRange")}
           </Text>
 
           <View

@@ -1,24 +1,27 @@
-export function validateEmail(email: string) {
+
+import i18n from "../i18n";
+
+export function validateEmail(email: string): string {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!email.trim()) {
-    return "Email is required";
+    return i18n.t("validation.emailRequired");
   }
 
   if (!regex.test(email)) {
-    return "Enter a valid email";
+    return i18n.t("validation.invalidEmail");
   }
 
   return "";
 }
 
-export function validatePassword(password: string) {
+export function validatePassword(password: string): string {
   if (!password) {
-    return "Password is required";
+    return i18n.t("validation.passwordRequired");
   }
 
   if (password.length < 8) {
-    return "Password must contain at least 8 characters";
+    return i18n.t("validation.passwordMinLength");
   }
 
   return "";
@@ -26,11 +29,11 @@ export function validatePassword(password: string) {
 
 export function validateFirstName(firstName: string): string {
   if (!firstName.trim()) {
-    return "First name is required";
+    return i18n.t("validation.firstNameRequired");
   }
 
   if (firstName.trim().length < 2) {
-    return "First name must contain at least 2 characters";
+    return i18n.t("validation.firstNameMinLength");
   }
 
   return "";

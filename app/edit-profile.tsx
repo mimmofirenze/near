@@ -30,6 +30,8 @@ import { useAppTheme } from "../contexts/themeContext";
 import { Ionicons } from "@expo/vector-icons";
 import Skeleton from "../components/Skeleton";
 
+import { useTranslation } from "react-i18next";
+
 function countryCodeToFlag(countryCode: string) {
   if (countryCode.length !== 2) {
     return "🌍";
@@ -48,6 +50,8 @@ export default function EditProfileScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { t, i18n } = useTranslation();
 
   const defaultAvatar =
   colorScheme === "dark"
@@ -167,7 +171,7 @@ export default function EditProfileScreen() {
         selectedCode,
       ]);
     } catch {
-      setErrorMessage("Could not add the country.");
+      setErrorMessage(t("editProfile.addCountryError"));
     } finally {
       setUpdatingVisitedCountries(false);
     }
@@ -195,7 +199,7 @@ export default function EditProfileScreen() {
         )
       );
     } catch {
-      setErrorMessage("Could not remove the country.");
+      setErrorMessage(t("editProfile.removeCountryError"));
     } finally {
       setUpdatingVisitedCountries(false);
     }
@@ -203,12 +207,12 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!firstName.trim()) {
-      setErrorMessage("First name is required.");
+      setErrorMessage(t("editProfile.firstNameRequired"));
       return;
     }
 
     if (!countryCode) {
-      setErrorMessage("Please select your country.");
+      setErrorMessage(t("editProfile.countryRequired"));
       return;
     }
 
@@ -230,7 +234,7 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch {
-      setErrorMessage("Something went wrong.");
+      setErrorMessage(t("editProfile.genericError"));
     } finally {
       setSaving(false);
     }
@@ -314,7 +318,7 @@ if (loading) {
                 fontFamily: "alanRegular",
               }}
             >
-              Edit profile
+              {t("profile.editProfile")}
             </Text>
           </View>
 
@@ -471,7 +475,7 @@ if (loading) {
                 fontFamily: "alanRegular",
               }}
             >
-              Edit profile
+              {t("profile.editProfile")}
             </Text>
           </View>
 
@@ -503,8 +507,8 @@ if (loading) {
               }}
             >
               {uploadingAvatar
-                ? "Uploading..."
-                : "Change profile picture"}
+                ? t("editProfile.uploading")
+                : t("editProfile.changePicture")}
             </Text>
           </Pressable>
 
@@ -512,7 +516,7 @@ if (loading) {
             value={firstName}
             onChangeText={setFirstName}
             maxLength={20}
-            placeholder="First name"
+            placeholder={t("editProfile.firstName")}
             placeholderTextColor="#888"
             style={{
               borderWidth: 1,
@@ -528,7 +532,7 @@ if (loading) {
             value={username}
             onChangeText={setUsername}
             maxLength={20}
-            placeholder="Username"
+            placeholder={t("editProfile.username")}
             autoCapitalize="none"
             autoCorrect={false}
             placeholderTextColor="#888"
@@ -565,7 +569,7 @@ if (loading) {
                 ? `${countryCodeToFlag(countryCode)} ${
                     countryName || countryCode
                   }`
-                : "Select your country"}
+                : t("editProfile.selectCountry")}
             </Text>
           </Pressable>
 
@@ -593,7 +597,7 @@ if (loading) {
                 fontFamily: "alanRegular",
               }}
             >
-              Countries visited
+              {t("editProfile.countriesVisited")}
             </Text>
 
             <Pressable
@@ -618,8 +622,8 @@ if (loading) {
                 }}
               >
                 {updatingVisitedCountries
-                  ? "Updating..."
-                  : "Add visited country"}
+                  ? t("editProfile.updating")
+                  : t("editProfile.addCountry")}
               </Text>
             </Pressable>
 
@@ -687,7 +691,7 @@ if (loading) {
             value={bio}
             onChangeText={setBio}
             maxLength={150}
-            placeholder="Bio"
+            placeholder={t("editProfile.bio")}
             multiline
             placeholderTextColor="#888"
             style={{
@@ -726,8 +730,8 @@ if (loading) {
               }}
             >
               {saving
-                ? "Saving..."
-                : "Save changes"}
+                ? t("editProfile.saving")
+                : t("editProfile.saveChanges")}
             </Text>
           </Pressable>
         </View>

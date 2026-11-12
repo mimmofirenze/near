@@ -123,11 +123,17 @@ useEffect(() => {
           headerShown: false,
           animation: "fade",
           contentStyle: {
-            backgroundColor:
-              theme.background,
+            backgroundColor: theme.background,
           },
         }}
-      />
+      >
+        <Stack.Screen
+          name="chat/[id]"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
+      </Stack>
     </>
   );
 }

@@ -32,7 +32,6 @@
   "alreadyUser": "Already a user? Login"
 },
 
-
 "settings": {
   "title": "Settings",
   "location": "Location",
@@ -49,7 +48,7 @@
   "dark": "Dark",
   "language": "Language",
   "languageDescription": "Choose your preferred language",
-  "account": "Account",
+  "account": "Log out",
   "logout": "Log out",
   "logoutConfirmation": "Are you sure you want to log out?",
   "support": "Support",
@@ -65,8 +64,161 @@
   "backgroundLocationError": "Could not enable background location.",
   "error": "Error",
   "cancel": "Cancel"
-}
+},
 
+"friends": {
+  "title": "Friends",
+  "searchPlaceholder": "Add friends by ID",
+  "searchResults": "Search results",
+  "searching": "Searching...",
+  "noUsers": "No users found",
+  "view": "View",
+  "requests": "Friend requests",
+  "noFriends": "You have no friends yet",
+  "noId": "No ID",
+  "loadError": "Could not load your friends.",
+  "searchError": "Could not search users.",
+  "sendError": "Could not send the friend request.",
+  "acceptError": "Could not accept the friend request.",
+  "declineError": "Could not decline the friend request."
+},
+
+"userProfile": {
+  "invalidUser": "Invalid user.",
+  "loadError": "Could not load profile.",
+  "chatError": "Could not open chat.",
+  "accept": "Accept",
+  "decline": "Decline",
+  "sending": "Sending...",
+  "requested": "Requested",
+  "addFriend": "Add friend",
+  "seeOnMap": "See on map",
+  "chat": "Chat",
+  "noBio": "No bio yet",
+  "lastSeen": "Last seen in:",
+  "locationUnavailable": "Location unavailable",
+  "lastUpdate": "(Last update: {{date}})",
+  "countriesVisited_one": "{{count}} country visited:",
+  "countriesVisited_other": "{{count}} countries visited:",
+  "memberSince": "Near member since {{date}}",
+  "removeFriend": "Remove friend",
+  "remove": "Remove",
+  "thisUser": "this user",
+  "removeConfirmation": "Remove {{name}} from your friends?"
+},
+
+"chats": {
+  "title": "Chats",
+  "refreshError": "Could not refresh chats.",
+  "noChats": "No chats yet",
+  "emptyDescription": "Open a friend's profile and start a conversation.",
+  "user": "User",
+  "typing": "typing...",
+  "startConversation": "Start a conversation",
+  "yesterday": "Yesterday"
+},
+
+"chat": {
+  "editMessage": "Edit message",
+  "deleteMessage": "Delete message",
+  "deleteConfirmation": "Delete message?",
+  "deleteDescription": "This message will be removed for everyone.",
+  "messagePlaceholder": "Message...",
+  "you": "You",
+  "friend": "friend",
+  "messageDeleted": "Message deleted",
+  "edited": "edited",
+  "replyingToYourself": "Replying to yourself",
+  "replyingTo": "Replying to {{name}}",
+  "today": "Today"
+},
+
+"profile": {
+  "title": "Profile",
+  "editProfile": "Edit profile",
+  "memberSince": "Near member since"
+},
+
+"editProfile": {
+  "uploading": "Uploading...",
+  "changePicture": "Change profile picture",
+  "firstName": "First name",
+  "username": "Username",
+  "selectCountry": "Select your country",
+  "countriesVisited": "Countries visited",
+  "updating": "Updating...",
+  "addCountry": "Add visited country",
+  "bio": "Bio",
+  "saving": "Saving...",
+  "saveChanges": "Save changes",
+  "addCountryError": "Could not add the country.",
+  "removeCountryError": "Could not remove the country.",
+  "firstNameRequired": "First name is required.",
+  "countryRequired": "Please select your country.",
+  "genericError": "Something went wrong."
+},
+
+"home": {
+  "findingLocation": "Finding your location...",
+  "locationError": "Could not get your current location.",
+  "locationLoadError": "Something went wrong while loading your location.",
+  "locationUnavailable": "Your location is currently unavailable.",
+  "tryAgain": "Try again",
+  "viewProfile": "View profile",
+  "nearRange": "Near range",
+  "distanceAway": "{{distance}} away",
+  "lastUpdate": "Last update: {{date}}"
+},
+
+"qr": {
+  "title": "My QR",
+  "description": "Let someone scan your QR code to find you on Near.",
+  "scanButton": "Scan a QR code"
+},
+
+"qrScanner": {
+  "cameraAccess": "Camera access",
+  "cameraDescription": "Near needs camera access to scan another user's QR code.",
+  "allowCamera": "Allow camera",
+  "scanInstruction": "Scan a Near QR code"
+},
+
+"forgotPassword": {
+  "title": "Reset password",
+  "description": "Enter your email and we'll send you a password reset link.",
+  "sending": "Sending...",
+  "sendEmail": "Send reset email",
+  "sendError": "We couldn't send the reset email. Please try again.",
+  "checkEmail": "Check your email",
+  "successMessage": "If an account exists for this email address, we've sent you a password reset link."
+},
+
+"resetPassword": {
+  "verifying": "Verifying reset link...",
+  "title": "Create new password",
+  "description": "Choose a new password for your Near account.",
+  "newPassword": "New password",
+  "confirmPassword": "Confirm new password",
+  "updating": "Updating...",
+  "updatePassword": "Update password",
+  "passwordMismatch": "Passwords do not match.",
+  "invalidLink": "Invalid reset link",
+  "invalidLinkDescription": "This password reset link is invalid or has expired.",
+  "backToLogin": "Back to login",
+  "updateError": "We couldn't update your password. Please try again.",
+  "success": "Password updated",
+  "successDescription": "Your password has been changed successfully.",
+  "login": "Log in"
+},
+
+"validation": {
+  "emailRequired": "Email is required",
+  "invalidEmail": "Enter a valid email",
+  "passwordRequired": "Password is required",
+  "passwordMinLength": "Password must contain at least 8 characters",
+  "firstNameRequired": "First name is required",
+  "firstNameMinLength": "First name must contain at least 2 characters"
+}
 
 }
   

@@ -48,8 +48,12 @@ import {
   setMemoryCachedData,
 } from "../../utils/cache";
 
+import { useTranslation } from "react-i18next";
+
 function formatChatTime(
-  timestamp: string | null
+  timestamp: string | null,
+  language: string,
+  yesterdayLabel: string
 ) {
   if (!timestamp) return "";
 
@@ -62,7 +66,7 @@ function formatChatTime(
     date.getFullYear() === now.getFullYear();
 
   if (sameDay) {
-    return date.toLocaleTimeString([], {
+    return date.toLocaleTimeString(language, {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -80,10 +84,10 @@ function formatChatTime(
       yesterday.getFullYear();
 
   if (isYesterday) {
-    return "Yesterday";
+    return yesterdayLabel;
   }
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(language, {
     day: "2-digit",
     month: "short",
   });
@@ -113,6 +117,8 @@ export default function ChatsScreen() {
 
   const { theme, colorScheme } =
     useAppTheme();
+
+    const { t, i18n } = useTranslation();
 
   const [conversations, setConversations] =
   useState<ConversationListItem[]>(
@@ -159,7 +165,7 @@ const loadConversations =
       );
 
       setErrorMessage(
-        "Could not refresh chats."
+        t("chats.refreshError")
       );
 
       setLoading(false);
@@ -179,7 +185,7 @@ const loadConversations =
         freshConversations
       );
     }
-  }, []);
+  }, [t]);
 
 useFocusEffect(
   useCallback(() => {
@@ -342,7 +348,7 @@ const ChatSkeleton = () => (
             { color: theme.text, marginBottom: 20 },
             ]}
         >
-            Chats
+            {t("chats.title")}
         </Text>
         </View>
 
@@ -400,7 +406,7 @@ ListEmptyComponent={
           fontSize: 19,
         }}
       >
-        No chats yet
+        {t("chats.noChats")}
       </Text>
 
       <Text
@@ -410,8 +416,7 @@ ListEmptyComponent={
           textAlign: "center",
         }}
       >
-        Open a friend's profile and
-        start a conversation.
+        {t("chats.emptyDescription")}
       </Text>
     </View>
   )
@@ -465,7 +470,7 @@ ListEmptyComponent={
                         },
                         ]}
                     >
-                        {item.friend_first_name ?? "User"}
+                        {item.friend_first_name ?? t("chats.user")}
                     </Text>
 
                     {item.friend_country_code ? (
@@ -500,9 +505,8 @@ ListEmptyComponent={
                     ]}
                     >
                     {isTyping
-                        ? "typing..."
-                        : item.last_message ??
-                        "Start a conversation"}
+                      ? t("chats.typing")
+                      : item.last_message ?? t("chats.startConversation")}
                     </Text>
                 </View>
 
@@ -520,7 +524,9 @@ ListEmptyComponent={
                     ]}
                 >
                     {formatChatTime(
-                    item.last_message_at
+                      item.last_message_at,
+                      i18n.resolvedLanguage ?? "en",
+                      t("chats.yesterday")
                     )}
                 </Text>
 

@@ -9,9 +9,13 @@ import {
   View,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+
 export default function QRScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+
+  const { t } = useTranslation();
 
   if (!permission) {
     return (
@@ -24,14 +28,14 @@ export default function QRScannerScreen() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Camera access</Text>
+        <Text style={styles.title}>{t("qrScanner.cameraAccess")}</Text>
 
         <Text style={styles.description}>
-          Near needs camera access to scan another user&apos;s QR code.
+          {t("qrScanner.cameraDescription")}
         </Text>
 
         <Pressable style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Allow camera</Text>
+          <Text style={styles.buttonText}>{t("qrScanner.allowCamera")}</Text>
         </Pressable>
       </View>
     );
@@ -70,7 +74,7 @@ export default function QRScannerScreen() {
       />
 
       <View style={styles.overlay}>
-        <Text style={styles.scanText}>Scan a Near QR code</Text>
+        <Text style={styles.scanText}>{t("qrScanner.scanInstruction")}</Text>
 
         <View style={styles.scanBox} />
       </View>

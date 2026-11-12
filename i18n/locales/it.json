@@ -49,7 +49,7 @@
   "dark": "Scuro",
   "language": "Lingua",
   "languageDescription": "Scegli la lingua che preferisci",
-  "account": "Account",
+  "account": "Esci",
   "logout": "Esci",
   "logoutConfirmation": "Sei sicuro di voler uscire?",
   "support": "Assistenza",
@@ -65,8 +65,161 @@
   "backgroundLocationError": "Impossibile attivare la posizione in background.",
   "error": "Errore",
   "cancel": "Annulla"
-}
+},
 
+"friends": {
+  "title": "Amici",
+  "searchPlaceholder": "Aggiungi amici tramite ID",
+  "searchResults": "Risultati della ricerca",
+  "searching": "Ricerca in corso...",
+  "noUsers": "Nessun utente trovato",
+  "view": "Visualizza",
+  "requests": "Richieste di amicizia",
+  "noFriends": "Non hai ancora amici",
+  "noId": "Nessun ID",
+  "loadError": "Impossibile caricare gli amici.",
+  "searchError": "Impossibile cercare gli utenti.",
+  "sendError": "Impossibile inviare la richiesta di amicizia.",
+  "acceptError": "Impossibile accettare la richiesta di amicizia.",
+  "declineError": "Impossibile rifiutare la richiesta di amicizia."
+},
+
+"userProfile": {
+  "invalidUser": "Utente non valido.",
+  "loadError": "Impossibile caricare il profilo.",
+  "chatError": "Impossibile aprire la chat.",
+  "accept": "Accetta",
+  "decline": "Rifiuta",
+  "sending": "Invio in corso...",
+  "requested": "Richiesta inviata",
+  "addFriend": "Aggiungi amico",
+  "seeOnMap": "Vedi sulla mappa",
+  "chat": "Chat",
+  "noBio": "Nessuna biografia",
+  "lastSeen": "Ultima posizione:",
+  "locationUnavailable": "Posizione non disponibile",
+  "lastUpdate": "(Ultimo aggiornamento: {{date}})",
+  "countriesVisited_one": "{{count}} paese visitato:",
+  "countriesVisited_other": "{{count}} paesi visitati:",
+  "memberSince": "Su Near dal {{date}}",
+  "removeFriend": "Rimuovi amico",
+  "remove": "Rimuovi",
+  "thisUser": "questo utente",
+  "removeConfirmation": "Vuoi rimuovere {{name}} dai tuoi amici?"
+},
+
+"chats": {
+  "title": "Chat",
+  "refreshError": "Impossibile aggiornare le chat.",
+  "noChats": "Nessuna chat",
+  "emptyDescription": "Apri il profilo di un amico e inizia una conversazione.",
+  "user": "Utente",
+  "typing": "sta scrivendo...",
+  "startConversation": "Inizia una conversazione",
+  "yesterday": "Ieri"
+},
+
+"chat": {
+  "editMessage": "Modifica messaggio",
+  "deleteMessage": "Elimina messaggio",
+  "deleteConfirmation": "Eliminare il messaggio?",
+  "deleteDescription": "Questo messaggio verrà eliminato per tutti.",
+  "messagePlaceholder": "Messaggio...",
+  "you": "Tu",
+  "friend": "un amico",
+  "messageDeleted": "Messaggio eliminato",
+  "edited": "modificato",
+  "replyingToYourself": "Stai rispondendo a te stesso",
+  "replyingTo": "Stai rispondendo a {{name}}",
+  "today": "Oggi"
+},
+
+"profile": {
+  "title": "Profilo",
+  "editProfile": "Modifica profilo",
+  "memberSince": "Su Near dal"
+},
+
+"editProfile": {
+  "uploading": "Caricamento...",
+  "changePicture": "Cambia foto profilo",
+  "firstName": "Nome",
+  "username": "Nome utente",
+  "selectCountry": "Seleziona il tuo paese",
+  "countriesVisited": "Paesi visitati",
+  "updating": "Aggiornamento...",
+  "addCountry": "Aggiungi un paese visitato",
+  "bio": "Biografia",
+  "saving": "Salvataggio...",
+  "saveChanges": "Salva modifiche",
+  "addCountryError": "Impossibile aggiungere il paese.",
+  "removeCountryError": "Impossibile rimuovere il paese.",
+  "firstNameRequired": "Il nome è obbligatorio.",
+  "countryRequired": "Seleziona il tuo paese.",
+  "genericError": "Qualcosa è andato storto."
+},
+
+"home": {
+  "findingLocation": "Ricerca della tua posizione...",
+  "locationError": "Impossibile ottenere la tua posizione attuale.",
+  "locationLoadError": "Si è verificato un errore durante il caricamento della tua posizione.",
+  "locationUnavailable": "La tua posizione non è attualmente disponibile.",
+  "tryAgain": "Riprova",
+  "viewProfile": "Visualizza profilo",
+  "nearRange": "Raggio di Near",
+  "distanceAway": "A {{distance}} di distanza",
+  "lastUpdate": "Ultimo aggiornamento: {{date}}"
+},
+
+"qr": {
+  "title": "Il mio QR",
+  "description": "Fai scansionare il tuo codice QR per farti trovare su Near.",
+  "scanButton": "Scansiona un codice QR"
+},
+
+"qrScanner": {
+  "cameraAccess": "Accesso alla fotocamera",
+  "cameraDescription": "Near ha bisogno di accedere alla fotocamera per scansionare il codice QR di un altro utente.",
+  "allowCamera": "Consenti accesso alla fotocamera",
+  "scanInstruction": "Scansiona un codice QR di Near"
+},
+
+"forgotPassword": {
+  "title": "Reimposta password",
+  "description": "Inserisci la tua email e ti invieremo un link per reimpostare la password.",
+  "sending": "Invio in corso...",
+  "sendEmail": "Invia email di recupero",
+  "sendError": "Impossibile inviare l'email di recupero. Riprova.",
+  "checkEmail": "Controlla la tua email",
+  "successMessage": "Se esiste un account associato a questo indirizzo email, ti abbiamo inviato un link per reimpostare la password."
+},
+
+"resetPassword": {
+  "verifying": "Verifica del link di recupero...",
+  "title": "Crea una nuova password",
+  "description": "Scegli una nuova password per il tuo account Near.",
+  "newPassword": "Nuova password",
+  "confirmPassword": "Conferma la nuova password",
+  "updating": "Aggiornamento...",
+  "updatePassword": "Aggiorna password",
+  "passwordMismatch": "Le password non coincidono.",
+  "invalidLink": "Link di recupero non valido",
+  "invalidLinkDescription": "Questo link per reimpostare la password non è valido oppure è scaduto.",
+  "backToLogin": "Torna al login",
+  "updateError": "Impossibile aggiornare la password. Riprova.",
+  "success": "Password aggiornata",
+  "successDescription": "La tua password è stata modificata correttamente.",
+  "login": "Accedi"
+},
+
+"validation": {
+  "emailRequired": "L'email è obbligatoria",
+  "invalidEmail": "Inserisci un indirizzo email valido",
+  "passwordRequired": "La password è obbligatoria",
+  "passwordMinLength": "La password deve contenere almeno 8 caratteri",
+  "firstNameRequired": "Il nome è obbligatorio",
+  "firstNameMinLength": "Il nome deve contenere almeno 2 caratteri"
+}
 
 }
   

@@ -19,8 +19,12 @@ import { styles } from "../styles/loginStyles";
 import { useAppTheme } from "../contexts/themeContext";
 import { validateEmail } from "../utils/validation";
 
+import { useTranslation } from "react-i18next";
+
 export default function ForgotPasswordScreen() {
   const { theme } = useAppTheme();
+
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -61,16 +65,16 @@ export default function ForgotPasswordScreen() {
         );
 
         Alert.alert(
-          "Error",
-          "We couldn't send the reset email. Please try again."
+          t("settings.error"),
+          t("forgotPassword.sendError")
         );
 
         return;
       }
 
       Alert.alert(
-        "Check your email",
-        "If an account exists for this email address, we've sent you a password reset link.",
+        t("forgotPassword.checkEmail"),
+        t("forgotPassword.successMessage"),
         [
           {
             text: "OK",
@@ -85,8 +89,8 @@ export default function ForgotPasswordScreen() {
       );
 
       Alert.alert(
-        "Error",
-        "Something went wrong. Please try again."
+        t("settings.error"),
+        t("login.genericError")
       );
     } finally {
       setLoading(false);
@@ -142,7 +146,7 @@ export default function ForgotPasswordScreen() {
               },
             ]}
           >
-            Reset password
+            {t("forgotPassword.title")}
           </Text>
 
           <Text
@@ -152,8 +156,7 @@ export default function ForgotPasswordScreen() {
               textAlign: "center",
             }}
           >
-            Enter your email and we'll send you a
-            password reset link.
+            {t("forgotPassword.description")}
           </Text>
 
           <TextInput
@@ -163,7 +166,7 @@ export default function ForgotPasswordScreen() {
                 ? styles.inputError
                 : null,
             ]}
-            placeholder="Enter email"
+            placeholder={t("login.email")}
             placeholderTextColor="#8F8F8F"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -196,13 +199,18 @@ export default function ForgotPasswordScreen() {
             onPress={handleResetPassword}
           >
             <Text
-              style={
-                styles.continueButtonText
-              }
+              style={[
+                styles.continueButtonText,
+                {
+                  textAlign: "center",
+                  flexShrink: 1,
+                  paddingHorizontal: 10,
+                },
+              ]}
             >
               {loading
-                ? "Sending..."
-                : "Send reset email"}
+                ? t("forgotPassword.sending")
+                : t("forgotPassword.sendEmail")}
             </Text>
           </Pressable>
         </View>

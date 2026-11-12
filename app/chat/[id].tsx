@@ -17,7 +17,7 @@ import {
   useLocalSearchParams,
 } from "expo-router";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { memo, useEffect, useRef, useState, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -58,12 +58,22 @@ import Swipeable from
 
 import * as Crypto from "expo-crypto";
 
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+
+import type { SharedValue } from "react-native-reanimated";
+
 import {
   getCachedData,
   getMemoryCachedData,
   setCachedData,
   setMemoryCachedData,
 } from "../../utils/cache";
+
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 40;
 
@@ -102,21 +112,26 @@ function getDateKey(date: Date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
 
-function formatDateLabel(date: Date) {
+function formatDateLabel(
+  date: Date,
+  language: string,
+  todayLabel: string,
+  yesterdayLabel: string
+) {
   const today = new Date();
 
   if (isSameDay(date, today)) {
-    return "Today";
+    return todayLabel;
   }
 
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
   if (isSameDay(date, yesterday)) {
-    return "Yesterday";
+    return yesterdayLabel;
   }
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(language, {
     day: "numeric",
     month: "long",
     year:
@@ -124,6 +139,56 @@ function formatDateLabel(date: Date) {
         ? "numeric"
         : undefined,
   });
+}
+
+const REPLY_ACTION_WIDTH = 64;
+
+/*
+ * The reply icon fades and scales in as you drag,
+ * all on the UI thread (no JS work while swiping).
+ */
+function ReplyAction({
+  progress,
+}: {
+  progress: SharedValue<number>;
+}) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      progress.value,
+      [0, 0.5, 1],
+      [0, 0.5, 1],
+      Extrapolation.CLAMP
+    ),
+    transform: [
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 1],
+          [0.5, 1],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width: REPLY_ACTION_WIDTH,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        animatedStyle,
+      ]}
+    >
+      <Ionicons
+        name="arrow-undo-outline"
+        size={24}
+        color="#2563EB"
+      />
+    </Animated.View>
+  );
 }
 
 function SwipeToReply({
@@ -134,40 +199,251 @@ function SwipeToReply({
   onReply: () => void;
 }) {
   const swipeableRef = useRef<any>(null);
+  const handledRef = useRef(false);
 
   return (
     <Swipeable
       ref={swipeableRef}
-      friction={1.5}
-      rightThreshold={45}
+      friction={1}
+      leftThreshold={44}
+      overshootLeft={false}
       overshootRight={false}
-      renderLeftActions={() => (
-        <View
-          style={{
-            width: 64,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Ionicons
-            name="arrow-undo-outline"
-            size={24}
-            color="#2563EB"
-          />
-        </View>
+      dragOffsetFromLeftEdge={15}
+      renderLeftActions={(progress) => (
+        <ReplyAction progress={progress} />
       )}
-      onSwipeableOpen={() => {
-        onReply();
+      /*
+       * Fires the moment you release past the threshold,
+       * not after the "open" animation finishes (that
+       * was the ~1 second delay). Reply immediately and
+       * let the row spring back.
+       */
+      onSwipeableWillOpen={() => {
+        if (handledRef.current) return;
+        handledRef.current = true;
 
-        requestAnimationFrame(() => {
-          swipeableRef.current?.close();
-        });
+        onReply();
+        swipeableRef.current?.close();
+      }}
+      // Safety net: if the row still ends up open, close it.
+      onSwipeableOpen={() => {
+        swipeableRef.current?.close();
+      }}
+      onSwipeableClose={() => {
+        handledRef.current = false;
       }}
     >
       {children}
     </Swipeable>
   );
 }
+
+/*
+ * Swipe-to-reply on/off switch.
+ */
+const ENABLE_SWIPE_TO_REPLY = true;
+
+/*
+ * toLocaleTimeString is slow on Hermes/Android, so each message's time
+ * is formatted once and cached instead of on every render.
+ */
+const timeCache = new Map<string, string>();
+
+function formatTime(iso: string, locale: string) {
+  const key = `${locale}|${iso}`;
+  let value = timeCache.get(key);
+
+  if (value === undefined) {
+    value = new Date(iso).toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    timeCache.set(key, value);
+  }
+
+  return value;
+}
+
+const keyExtractor = (item: ChatListItem) =>
+  item.type === "message" ? item.message.id : item.id;
+
+const LIST_CONTENT_STYLE = {
+  padding: 14,
+  gap: 8,
+} as const;
+
+type MessageBubbleProps = {
+  message: ChatMessage;
+  mine: boolean;
+  isDark: boolean;
+  textColor: string;
+  locale: string;
+  replyName: string | null;
+  deletedLabel: string;
+  editedLabel: string;
+  onLongPress: (message: ChatMessage) => void;
+  onReply: (message: ChatMessage) => void;
+};
+
+/*
+ * Memoized: an existing message only re-renders when its own props change,
+ * not whenever you type or another message arrives.
+ */
+const MessageBubble = memo(function MessageBubble({
+  message,
+  mine,
+  isDark,
+  textColor,
+  locale,
+  replyName,
+  deletedLabel,
+  editedLabel,
+  onLongPress,
+  onReply,
+}: MessageBubbleProps) {
+  const bubble = (
+    <Pressable
+      onLongPress={
+        mine && !message.deleted_at
+          ? () => onLongPress(message)
+          : undefined
+      }
+      delayLongPress={350}
+      style={{
+        alignSelf: mine ? "flex-end" : "flex-start",
+        maxWidth: "78%",
+        backgroundColor: mine
+          ? "#2563EB"
+          : isDark
+          ? "#292929"
+          : "#EEEEEE",
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: 18,
+      }}
+    >
+      {message.reply_to ? (
+        <View
+          style={{
+            marginBottom: 7,
+            paddingHorizontal: 10,
+            paddingVertical: 7,
+            borderRadius: 10,
+            borderLeftWidth: 3,
+            borderLeftColor: mine
+              ? "rgba(255,255,255,0.8)"
+              : "#2563EB",
+            backgroundColor: mine
+              ? "rgba(255,255,255,0.12)"
+              : isDark
+              ? "rgba(255,255,255,0.06)"
+              : "rgba(0,0,0,0.05)",
+          }}
+        >
+          <Text
+            style={{
+              color: mine ? "#FFFFFF" : "#2563EB",
+              fontFamily: "alanSemiBold",
+              fontSize: 12,
+              marginBottom: 2,
+            }}
+          >
+            {replyName}
+          </Text>
+
+          <Text
+            numberOfLines={2}
+            style={{
+              color: mine ? "rgba(255,255,255,0.8)" : textColor,
+              opacity: mine ? 1 : 0.7,
+              fontFamily: "alanRegular",
+              fontSize: 13,
+            }}
+          >
+            {message.reply_to.body}
+          </Text>
+        </View>
+      ) : null}
+
+      <Text
+        style={{
+          color: mine ? "#FFFFFF" : textColor,
+          fontFamily: "alanRegular",
+          fontSize: 16,
+        }}
+      >
+        {message.deleted_at ? deletedLabel : message.body}
+      </Text>
+
+      <View
+        style={{
+          marginTop: 4,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 3,
+        }}
+      >
+        <Text
+          style={{
+            color: mine ? "rgba(255,255,255,0.7)" : "#888888",
+            fontSize: 10,
+          }}
+        >
+          {formatTime(message.created_at, locale)}
+
+          {message.edited_at && !message.deleted_at
+            ? ` · ${editedLabel}`
+            : ""}
+        </Text>
+
+        {mine ? (
+          message.local_status === "pending" ? (
+            <Ionicons
+              name="time-outline"
+              size={13}
+              color="rgba(255,255,255,0.7)"
+            />
+          ) : message.local_status === "failed" ? (
+            <Ionicons
+              name="alert-circle-outline"
+              size={14}
+              color="#FCA5A5"
+            />
+          ) : message.delivered_at ? (
+            <Ionicons
+              name="checkmark-done"
+              size={15}
+              color="rgba(255,255,255,0.85)"
+            />
+          ) : (
+            <Ionicons
+              name="checkmark"
+              size={14}
+              color="rgba(255,255,255,0.75)"
+            />
+          )
+        ) : null}
+      </View>
+    </Pressable>
+  );
+
+  const canReply =
+    ENABLE_SWIPE_TO_REPLY &&
+    !message.deleted_at &&
+    !message.local_status &&
+    !message.id.startsWith("temp-");
+
+  if (!canReply) {
+    return bubble;
+  }
+
+  return (
+    <SwipeToReply onReply={() => onReply(message)}>
+      {bubble}
+    </SwipeToReply>
+  );
+});
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{
@@ -197,6 +473,8 @@ const memoryChat = memoryCacheKey
 );
 
   const { theme, colorScheme } = useAppTheme();
+
+  const { t, i18n } = useTranslation();
 
   const [messages, setMessages] = useState<
     ChatMessage[]
@@ -372,14 +650,18 @@ const chatItems = useMemo<ChatListItem[]>(() => {
         id: `date-${getDateKey(
           currentDate
         )}`,
-        label:
-          formatDateLabel(currentDate),
+        label: formatDateLabel(
+          currentDate,
+          i18n.resolvedLanguage ?? "en",
+          t("chat.today"),
+          t("chats.yesterday")
+        ),
       });
     }
   });
 
   return items;
-}, [messages, friendTyping]);
+}, [messages, friendTyping, i18n.resolvedLanguage, t]);
 
   const hasMoreRef = useRef(true);
 
@@ -596,12 +878,17 @@ useEffect(() => {
    * DISK CACHE
    * survives app restart
    */
-  if (chatCacheKey) {
-    setCachedData(
-      chatCacheKey,
-      cacheData
-    );
+  if (!chatCacheKey) {
+    return;
   }
+
+  // Debounced so a send (optimistic message + server message)
+  // doesn't trigger two disk writes in a row.
+  const diskTimer = setTimeout(() => {
+    setCachedData(chatCacheKey, cacheData);
+  }, 1500);
+
+  return () => clearTimeout(diskTimer);
 }, [
   id,
   chatCacheKey,
@@ -644,19 +931,27 @@ useEffect(() => {
   };
 }, [id]);
 
-const handleMessageLongPress = (
-  message: ChatMessage
-) => {
-  if (
-    message.sender_id !== currentUserId ||
-    message.deleted_at
-  ) {
-    return;
-  }
+const handleMessageLongPress = useCallback(
+  (message: ChatMessage) => {
+    if (
+      message.sender_id !== currentUserId ||
+      message.deleted_at
+    ) {
+      return;
+    }
 
-  setMessageMenuMessage(message);
-  setConfirmingDelete(false);
-};
+    setMessageMenuMessage(message);
+    setConfirmingDelete(false);
+  },
+  [currentUserId]
+);
+
+const handleReplyToMessage = useCallback(
+  (message: ChatMessage) => {
+    setReplyingToMessage(message);
+  },
+  []
+);
 
 const handleDeleteMessage = async () => {
   if (!messageMenuMessage) return;
@@ -791,8 +1086,14 @@ const optimisticMessage: ChatMessage = {
 setText("");
 setReplyingToMessage(null);
 
-/* SHOW MESSAGE INSTANTLY */
+// Show the message locally immediately
 addMessage(optimisticMessage);
+
+// Give React Native a frame to render it
+// before starting the Supabase request
+await new Promise<void>((resolve) => {
+  requestAnimationFrame(() => resolve());
+});
 
 const { message, error } =
   await sendMessage(
@@ -887,6 +1188,100 @@ if (currentUserId) {
 
     setLoadingMore(false);
   };
+
+const renderItem = useCallback(
+  ({ item }: { item: ChatListItem }) => {
+    const isDark = colorScheme === "dark";
+
+    if (item.type === "typing") {
+      return (
+        <View
+          style={{
+            alignSelf: "flex-start",
+            maxWidth: "78%",
+            backgroundColor: isDark ? "#292929" : "#EEEEEE",
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: 18,
+          }}
+        >
+          <Text
+            style={{
+              color: "#888888",
+              fontFamily: "alanRegular",
+              fontSize: 16,
+            }}
+          >
+            {t("chats.typing")}
+          </Text>
+        </View>
+      );
+    }
+
+    if (item.type === "date") {
+      return (
+        <View
+          style={{
+            alignItems: "center",
+            marginVertical: 14,
+          }}
+        >
+          <View
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+              borderRadius: 12,
+              backgroundColor: isDark ? "#292929" : "#EEEEEE",
+            }}
+          >
+            <Text
+              style={{
+                color: "#888888",
+                fontFamily: "alanRegular",
+                fontSize: 12,
+              }}
+            >
+              {item.label}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    const message = item.message;
+
+    const replyName = message.reply_to
+      ? message.reply_to.sender_id === currentUserId
+        ? t("chat.you")
+        : friend?.first_name ?? t("chats.user")
+      : null;
+
+    return (
+      <MessageBubble
+        message={message}
+        mine={message.sender_id === currentUserId}
+        isDark={isDark}
+        textColor={theme.text}
+        locale={i18n.resolvedLanguage ?? "en"}
+        replyName={replyName}
+        deletedLabel={t("chat.messageDeleted")}
+        editedLabel={t("chat.edited")}
+        onLongPress={handleMessageLongPress}
+        onReply={handleReplyToMessage}
+      />
+    );
+  },
+  [
+    colorScheme,
+    theme.text,
+    currentUserId,
+    friend?.first_name,
+    i18n.resolvedLanguage,
+    t,
+    handleMessageLongPress,
+    handleReplyToMessage,
+  ]
+);
 
 if (loading) {
   return (
@@ -1176,7 +1571,7 @@ if (loading) {
                         fontSize: 17,
                       }}
                     >
-                      Edit message
+                      {t("chat.editMessage")}
                     </Text>
                   </Pressable>
 
@@ -1208,7 +1603,7 @@ if (loading) {
                         fontSize: 17,
                       }}
                     >
-                      Delete message
+                      {t("chat.deleteMessage")}
                     </Text>
                   </Pressable>
                 </>
@@ -1223,7 +1618,7 @@ if (loading) {
                       marginBottom: 8,
                     }}
                   >
-                    Delete message?
+                    {t("chat.deleteConfirmation")}
                   </Text>
 
                   <Text
@@ -1235,8 +1630,7 @@ if (loading) {
                       marginBottom: 22,
                     }}
                   >
-                    This message will be removed
-                    for everyone.
+                    {t("chat.deleteDescription")}
                   </Text>
 
                   <Pressable
@@ -1261,7 +1655,7 @@ if (loading) {
                         fontSize: 16,
                       }}
                     >
-                      Delete
+                      {t("settings.delete")}
                     </Text>
                   </Pressable>
 
@@ -1284,7 +1678,7 @@ if (loading) {
                         fontSize: 16,
                       }}
                     >
-                      Cancel
+                      {t("settings.cancel")}
                     </Text>
                   </Pressable>
                 </>
@@ -1366,7 +1760,7 @@ if (loading) {
                   fontSize: 18,
                 }}
               >
-                {friend?.first_name ?? "Chat"}
+                {friend?.first_name ?? t("userProfile.chat")}
               </Text>
 
               {friend?.username ? (
@@ -1389,249 +1783,16 @@ if (loading) {
           inverted
           data={chatItems}
           keyboardShouldPersistTaps="handled"
-          keyExtractor={(item) => {
-            if (item.type === "message") {
-                return item.message.id;
-            }
-
-            return item.id;
-            }}
-          contentContainerStyle={{
-            padding: 14,
-            gap: 8,
-          }}
-          onEndReached={
-            loadMoreMessages
-          }
+          keyExtractor={keyExtractor}
+          contentContainerStyle={LIST_CONTENT_STYLE}
+          onEndReached={loadMoreMessages}
           onEndReachedThreshold={0.3}
-          renderItem={({ item }) => {
-            if (item.type === "typing") {
-  return (
-    <View
-      style={{
-        alignSelf: "flex-start",
-        maxWidth: "78%",
-        backgroundColor:
-          colorScheme === "dark"
-            ? "#292929"
-            : "#EEEEEE",
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 18,
-      }}
-    >
-      <Text
-        style={{
-          color: "#888888",
-          fontFamily: "alanRegular",
-          fontSize: 16,
-        }}
-      >
-        typing...
-      </Text>
-    </View>
-  );
-}
-
-  if (item.type === "date") {
-    return (
-      <View
-        style={{
-          alignItems: "center",
-          marginVertical: 14,
-        }}
-      >
-        <View
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 5,
-            borderRadius: 12,
-            backgroundColor:
-              colorScheme === "dark"
-                ? "#292929"
-                : "#EEEEEE",
-          }}
-        >
-          <Text
-            style={{
-              color: "#888888",
-              fontFamily: "alanRegular",
-              fontSize: 12,
-            }}
-          >
-            {item.label}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  const message = item.message;
-
-  const mine =
-    message.sender_id === currentUserId;
-
-return (
-  <SwipeToReply
-    onReply={() =>
-      setReplyingToMessage(message)
-    }
-  >
-    <Pressable
-      onLongPress={
-        mine && !message.deleted_at
-          ? () =>
-              handleMessageLongPress(message)
-          : undefined
-      }
-      delayLongPress={350}
-      style={{
-        alignSelf: mine
-          ? "flex-end"
-          : "flex-start",
-
-        maxWidth: "78%",
-
-        backgroundColor: mine
-          ? "#2563EB"
-          : colorScheme === "dark"
-          ? "#292929"
-          : "#EEEEEE",
-
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 18,
-      }}
-    >
-
-      {message.reply_to ? (
-        <View
-          style={{
-            marginBottom: 7,
-            paddingHorizontal: 10,
-            paddingVertical: 7,
-            borderRadius: 10,
-
-            borderLeftWidth: 3,
-            borderLeftColor: mine
-              ? "rgba(255,255,255,0.8)"
-              : "#2563EB",
-
-            backgroundColor: mine
-              ? "rgba(255,255,255,0.12)"
-              : colorScheme === "dark"
-              ? "rgba(255,255,255,0.06)"
-              : "rgba(0,0,0,0.05)",
-          }}
-        >
-          <Text
-            style={{
-              color: mine
-                ? "#FFFFFF"
-                : "#2563EB",
-              fontFamily: "alanSemiBold",
-              fontSize: 12,
-              marginBottom: 2,
-            }}
-          >
-            {message.reply_to.sender_id ===
-            currentUserId
-              ? "You"
-              : friend?.first_name ?? "User"}
-          </Text>
-
-          <Text
-            numberOfLines={2}
-            style={{
-              color: mine
-                ? "rgba(255,255,255,0.8)"
-                : theme.text,
-              opacity: mine ? 1 : 0.7,
-              fontFamily: "alanRegular",
-              fontSize: 13,
-            }}
-          >
-            {message.reply_to.body}
-          </Text>
-        </View>
-      ) : null}
-      <Text
-        style={{
-          color: mine
-            ? "#FFFFFF"
-            : theme.text,
-
-          fontFamily: "alanRegular",
-          fontSize: 16,
-        }}
-      >
-        {message.deleted_at
-          ? "Message deleted"
-          : message.body}
-      </Text>
-
-      <View
-        style={{
-          marginTop: 4,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          gap: 3,
-        }}
-      >
-        <Text
-          style={{
-            color: mine
-              ? "rgba(255,255,255,0.7)"
-              : "#888888",
-            fontSize: 10,
-          }}
-        >
-          {new Date(
-            message.created_at
-          ).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-
-          {message.edited_at &&
-          !message.deleted_at
-            ? " · edited"
-            : ""}
-        </Text>
-
-        {mine ? (
-          message.local_status === "pending" ? (
-            <Ionicons
-              name="time-outline"
-              size={13}
-              color="rgba(255,255,255,0.7)"
-            />
-          ) : message.local_status === "failed" ? (
-            <Ionicons
-              name="alert-circle-outline"
-              size={14}
-              color="#FCA5A5"
-            />
-          ) : message.delivered_at ? (
-            <Ionicons
-              name="checkmark-done"
-              size={15}
-              color="rgba(255,255,255,0.85)"
-            />
-          ) : (
-            <Ionicons
-              name="checkmark"
-              size={14}
-              color="rgba(255,255,255,0.75)"
-            />
-          )
-        ) : null}
-      </View>
-    </Pressable>
-  </SwipeToReply>
-);
-}}
+          renderItem={renderItem}
+          initialNumToRender={6}
+          maxToRenderPerBatch={4}
+          windowSize={3}
+          updateCellsBatchingPeriod={80}
+          removeClippedSubviews={Platform.OS === "android"}
         />
 
         <View
@@ -1666,12 +1827,11 @@ return (
             fontSize: 13,
           }}
         >
-          {replyingToMessage.sender_id ===
-          currentUserId
-            ? "Replying to yourself"
-            : `Replying to ${
-                friend?.first_name ?? "friend"
-              }`}
+          {replyingToMessage.sender_id === currentUserId
+            ? t("chat.replyingToYourself")
+            : t("chat.replyingTo", {
+                name: friend?.first_name ?? t("chat.friend"),
+              })}
         </Text>
 
         <Text
@@ -1716,7 +1876,7 @@ return (
         ref={messageInputRef}
         value={text}
         onChangeText={handleTextChange}
-        placeholder="Message..."
+        placeholder={t("chat.messagePlaceholder")}
         placeholderTextColor="#888"
         multiline
         maxLength={2000}

@@ -34,6 +34,8 @@ import {
 
 import { supabase } from "../../lib/supabase";
 
+import { useTranslation } from "react-i18next";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -54,6 +56,8 @@ export default function ProfileScreen() {
 
   const { theme, colorScheme } =
   useAppTheme();
+
+  const { t, i18n } = useTranslation();
 
   const memoryProfile =
   getMemoryCachedData<CachedProfileData>(
@@ -237,8 +241,15 @@ useFocusEffect(
 );
 
   const memberSince = profile?.created_at
-    ? new Date(profile.created_at).toLocaleDateString("en-GB")
-    : "";
+  ? new Date(profile.created_at).toLocaleDateString(
+      i18n.resolvedLanguage ?? "en",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    )
+  : "";
 
   return (
     <SafeAreaView
@@ -258,7 +269,7 @@ useFocusEffect(
             },
           ]}
         >
-          Profile
+          {t("profile.title")}
         </Text>
         <View
           style={[
@@ -280,7 +291,7 @@ useFocusEffect(
             onPress={() => router.push("/edit-profile")}
           >
             <Text style={[styles.buttonText, { color: theme.text }]}>
-              Edit profile
+              {t("profile.editProfile")}
             </Text>
           </Pressable>
         </View>
@@ -495,7 +506,7 @@ useFocusEffect(
                   ]}
                 >
                   {profile?.bio ||
-                    "No bio yet"}
+                    t("userProfile.noBio")}
                 </Text>
               )}
 
@@ -515,10 +526,9 @@ useFocusEffect(
                     },
                   ]}
                 >
-                  {
-                    visitedCountries.length
-                  }{" "}
-                  Countries visited:
+                  {t("userProfile.countriesVisited", {
+                    count: visitedCountries.length,
+                  })}
                 </Text>
 
                 <View
@@ -563,8 +573,10 @@ useFocusEffect(
                 ]}
               >
                 {memberSince
-                  ? `Near member since ${memberSince}`
-                  : "Near member since"}
+                  ? t("userProfile.memberSince", {
+                      date: memberSince,
+                    })
+                  : t("profile.memberSince")}
               </Text>
             </>
           )}

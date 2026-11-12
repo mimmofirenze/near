@@ -15,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../contexts/themeContext";
 import { getCurrentProfile } from "../utils/profile";
 
+import { useTranslation } from "react-i18next";
+
 type Profile = {
   id: string;
   first_name: string;
@@ -24,6 +26,8 @@ type Profile = {
 
 export default function QRScreen() {
   const { theme, colorScheme } = useAppTheme();
+
+  const { t } = useTranslation();
 
   const [profile, setProfile] =
     useState<Profile | null>(null);
@@ -91,7 +95,7 @@ export default function QRScreen() {
               marginLeft: 12,
             }}
           >
-            My QR
+            {t("qr.title")}
           </Text>
         </View>
 
@@ -196,7 +200,7 @@ export default function QRScreen() {
                 paddingHorizontal: 30,
               }}
             >
-              Let someone scan your QR code to find you on Near.
+              {t("qr.description")}
             </Text>
 
             {/* Scanner button */}
@@ -230,7 +234,7 @@ export default function QRScreen() {
                   fontSize: 17,
                 }}
               >
-                Scan a QR code
+                {t("qr.scanButton")}
               </Text>
             </Pressable>
           </View>
@@ -248,7 +252,7 @@ export default function QRScreen() {
                 fontFamily: "alanRegular",
               }}
             >
-              Could not load your profile.
+              {t("userProfile.loadError")}
             </Text>
           </View>
         )}

@@ -49,7 +49,7 @@
   "dark": "Sombre",
   "language": "Langue",
   "languageDescription": "Choisissez votre langue préférée",
-  "account": "Compte",
+  "account": "Se déconnecter",
   "logout": "Se déconnecter",
   "logoutConfirmation": "Voulez-vous vraiment vous déconnecter ?",
   "support": "Assistance",
@@ -65,8 +65,161 @@
   "backgroundLocationError": "Impossible d'activer la localisation en arrière-plan.",
   "error": "Erreur",
   "cancel": "Annuler"
-}
+},
 
+"friends": {
+  "title": "Amis",
+  "searchPlaceholder": "Ajouter des amis par ID",
+  "searchResults": "Résultats de recherche",
+  "searching": "Recherche en cours...",
+  "noUsers": "Aucun utilisateur trouvé",
+  "view": "Voir",
+  "requests": "Demandes d'ami",
+  "noFriends": "Vous n'avez pas encore d'amis",
+  "noId": "Aucun ID",
+  "loadError": "Impossible de charger vos amis.",
+  "searchError": "Impossible de rechercher des utilisateurs.",
+  "sendError": "Impossible d'envoyer la demande d'ami.",
+  "acceptError": "Impossible d'accepter la demande d'ami.",
+  "declineError": "Impossible de refuser la demande d'ami."
+},
+
+"userProfile": {
+  "invalidUser": "Utilisateur invalide.",
+  "loadError": "Impossible de charger le profil.",
+  "chatError": "Impossible d'ouvrir la conversation.",
+  "accept": "Accepter",
+  "decline": "Refuser",
+  "sending": "Envoi en cours...",
+  "requested": "Demande envoyée",
+  "addFriend": "Ajouter un ami",
+  "seeOnMap": "Voir sur la carte",
+  "chat": "Discussion",
+  "noBio": "Aucune biographie",
+  "lastSeen": "Dernière position connue :",
+  "locationUnavailable": "Position indisponible",
+  "lastUpdate": "(Dernière mise à jour : {{date}})",
+  "countriesVisited_one": "{{count}} pays visité :",
+  "countriesVisited_other": "{{count}} pays visités :",
+  "memberSince": "Membre de Near depuis le {{date}}",
+  "removeFriend": "Retirer cet ami",
+  "remove": "Retirer",
+  "thisUser": "cet utilisateur",
+  "removeConfirmation": "Retirer {{name}} de vos amis ?"
+},
+
+"chats": {
+  "title": "Discussions",
+  "refreshError": "Impossible d'actualiser les discussions.",
+  "noChats": "Aucune discussion",
+  "emptyDescription": "Ouvrez le profil d'un ami et commencez une conversation.",
+  "user": "Utilisateur",
+  "typing": "écrit...",
+  "startConversation": "Commencer une conversation",
+  "yesterday": "Hier"
+},
+
+"chat": {
+  "editMessage": "Modifier le message",
+  "deleteMessage": "Supprimer le message",
+  "deleteConfirmation": "Supprimer le message ?",
+  "deleteDescription": "Ce message sera supprimé pour tout le monde.",
+  "messagePlaceholder": "Message...",
+  "you": "Vous",
+  "friend": "un ami",
+  "messageDeleted": "Message supprimé",
+  "edited": "modifié",
+  "replyingToYourself": "Vous vous répondez à vous-même",
+  "replyingTo": "Vous répondez à {{name}}",
+  "today": "Aujourd'hui"
+},
+
+"profile": {
+  "title": "Profil",
+  "editProfile": "Modifier le profil",
+  "memberSince": "Membre de Near depuis"
+},
+
+"editProfile": {
+  "uploading": "Téléchargement en cours...",
+  "changePicture": "Changer la photo de profil",
+  "firstName": "Prénom",
+  "username": "Nom d'utilisateur",
+  "selectCountry": "Sélectionnez votre pays",
+  "countriesVisited": "Pays visités",
+  "updating": "Mise à jour...",
+  "addCountry": "Ajouter un pays visité",
+  "bio": "Biographie",
+  "saving": "Enregistrement...",
+  "saveChanges": "Enregistrer les modifications",
+  "addCountryError": "Impossible d'ajouter le pays.",
+  "removeCountryError": "Impossible de retirer le pays.",
+  "firstNameRequired": "Le prénom est obligatoire.",
+  "countryRequired": "Veuillez sélectionner votre pays.",
+  "genericError": "Une erreur s'est produite."
+},
+
+"home": {
+  "findingLocation": "Recherche de votre position...",
+  "locationError": "Impossible d'obtenir votre position actuelle.",
+  "locationLoadError": "Une erreur s'est produite lors du chargement de votre position.",
+  "locationUnavailable": "Votre position est actuellement indisponible.",
+  "tryAgain": "Réessayer",
+  "viewProfile": "Voir le profil",
+  "nearRange": "Rayon de Near",
+  "distanceAway": "À {{distance}}",
+  "lastUpdate": "Dernière mise à jour : {{date}}"
+},
+
+"qr": {
+  "title": "Mon QR code",
+  "description": "Laissez quelqu'un scanner votre QR code pour vous retrouver sur Near.",
+  "scanButton": "Scanner un QR code"
+},
+
+"qrScanner": {
+  "cameraAccess": "Accès à l'appareil photo",
+  "cameraDescription": "Near a besoin d'accéder à l'appareil photo pour scanner le QR code d'un autre utilisateur.",
+  "allowCamera": "Autoriser l'accès à l'appareil photo",
+  "scanInstruction": "Scannez un QR code Near"
+},
+
+"forgotPassword": {
+  "title": "Réinitialiser le mot de passe",
+  "description": "Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+  "sending": "Envoi en cours...",
+  "sendEmail": "Envoyer l'e-mail de réinitialisation",
+  "sendError": "Impossible d'envoyer l'e-mail de réinitialisation. Veuillez réessayer.",
+  "checkEmail": "Vérifiez votre e-mail",
+  "successMessage": "Si un compte est associé à cette adresse e-mail, nous vous avons envoyé un lien pour réinitialiser votre mot de passe."
+},
+
+"resetPassword": {
+  "verifying": "Vérification du lien de réinitialisation...",
+  "title": "Créer un nouveau mot de passe",
+  "description": "Choisissez un nouveau mot de passe pour votre compte Near.",
+  "newPassword": "Nouveau mot de passe",
+  "confirmPassword": "Confirmez le nouveau mot de passe",
+  "updating": "Mise à jour...",
+  "updatePassword": "Mettre à jour le mot de passe",
+  "passwordMismatch": "Les mots de passe ne correspondent pas.",
+  "invalidLink": "Lien de réinitialisation invalide",
+  "invalidLinkDescription": "Ce lien de réinitialisation du mot de passe est invalide ou a expiré.",
+  "backToLogin": "Retour à la connexion",
+  "updateError": "Impossible de mettre à jour votre mot de passe. Veuillez réessayer.",
+  "success": "Mot de passe mis à jour",
+  "successDescription": "Votre mot de passe a été modifié avec succès.",
+  "login": "Se connecter"
+},
+
+"validation": {
+  "emailRequired": "L'adresse e-mail est obligatoire",
+  "invalidEmail": "Saisissez une adresse e-mail valide",
+  "passwordRequired": "Le mot de passe est obligatoire",
+  "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+  "firstNameRequired": "Le prénom est obligatoire",
+  "firstNameMinLength": "Le prénom doit contenir au moins 2 caractères"
+}
 
 }
   

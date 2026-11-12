@@ -121,6 +121,7 @@ useEffect(() => {
 }, [checkingSession, markHomeReady]);
 
 const handleLogin = async () => {
+  Keyboard.dismiss();
   const newEmailError = validateEmail(email);
   const newPasswordError = validatePassword(password);
 
