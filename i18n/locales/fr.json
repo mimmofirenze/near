@@ -18,7 +18,9 @@
     "incorrectCredentials": "E-mail ou mot de passe incorrect.",
     "genericError": "Une erreur est survenue. Réessayez.",
     "googleFailed": "Échec de la connexion avec Google.",
-    "facebookFailed": "Échec de la connexion avec Facebook."
+    "facebookFailed": "Échec de la connexion avec Facebook.",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "signUp": "Inscrivez-vous"
   },
   
 "register": {
@@ -29,7 +31,9 @@
   "passwordMismatch": "Les mots de passe ne correspondent pas",
   "creating": "Création du compte...",
   "checkEmail": "Compte créé. Vérifiez votre e-mail pour le confirmer.",
-  "alreadyUser": "Déjà un compte ? Connectez-vous"
+  "alreadyUser": "Déjà un compte ? Connectez-vous",
+  "haveAccount": "Vous avez déjà un compte ?",
+  "logIn": "Connectez-vous"
 },
 
 

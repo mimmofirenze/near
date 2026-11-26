@@ -18,7 +18,9 @@
     "incorrectCredentials": "Correo o contraseña incorrectos.",
     "genericError": "Algo salió mal. Inténtalo de nuevo.",
     "googleFailed": "Error al iniciar sesión con Google.",
-    "facebookFailed": "Error al iniciar sesión con Facebook."
+    "facebookFailed": "Error al iniciar sesión con Facebook.",
+    "noAccount": "¿No tienes una cuenta?",
+    "signUp": "Regístrate"
   },
   
 "register": {
@@ -29,7 +31,9 @@
   "passwordMismatch": "Las contraseñas no coinciden",
   "creating": "Creando cuenta...",
   "checkEmail": "Cuenta creada. Revisa tu correo para confirmarla.",
-  "alreadyUser": "¿Ya tienes una cuenta? Inicia sesión"
+  "alreadyUser": "¿Ya tienes una cuenta? Inicia sesión",
+  "haveAccount": "¿Ya tienes una cuenta?",
+  "logIn": "Inicia sesión"
 },
 
 "settings": {

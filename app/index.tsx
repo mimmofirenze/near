@@ -5,7 +5,7 @@ import { View,
   Pressable,
   Modal,
   Keyboard, 
-  TouchableWithoutFeedback
+  ScrollView
 
  } from 'react-native';
 
@@ -230,18 +230,21 @@ const handleLogin = async () => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-        <View style={styles.container}>
+      <ScrollView
+    style={{ flex: 1 }}
+    contentContainerStyle={styles.container}
+    keyboardShouldPersistTaps="handled"
+    keyboardDismissMode="on-drag"
+    automaticallyAdjustKeyboardInsets={true}
+    showsVerticalScrollIndicator={false}
+>
 
           
 <View
-  style={{
-    position: "absolute",
-    top: 20,
-    right: 15,
-    zIndex: 10,
-  }}
+    style={{
+        alignSelf: "flex-end",
+        marginBottom: 10,
+    }}
 >
   <Pressable
     onPress={() => setLanguageModalVisible(true)}
@@ -264,7 +267,13 @@ const handleLogin = async () => {
       color={theme.text}
     />
 
-    <Text style={{ color: theme.text, fontWeight: "600" }}>
+    <Text
+        style={{
+            color: theme.text,
+            fontWeight: "600",
+            flexShrink: 1,
+        }}
+    >
       {i18n.resolvedLanguage?.toUpperCase() ?? "EN"}
     </Text>
 
@@ -292,13 +301,19 @@ const handleLogin = async () => {
     }}
   >
     <Pressable
-      onPress={(event) => event.stopPropagation()}
-      style={{
+    onPress={(event) => event.stopPropagation()}
+    style={{
         backgroundColor: theme.background,
         borderRadius: 18,
-        padding: 20,
-        gap: 8,
-      }}
+        maxHeight: "85%",
+    }}
+>
+    <ScrollView
+        contentContainerStyle={{
+            padding: 20,
+            gap: 8,
+        }}
+        showsVerticalScrollIndicator={false}
     >
       <Text
         style={{
@@ -345,9 +360,10 @@ const handleLogin = async () => {
             />
           )}
         </Pressable>
-      ))}
+    ))}
+    </ScrollView>
     </Pressable>
-  </Pressable>
+</Pressable>
 </Modal>
 
 
@@ -456,6 +472,17 @@ const handleLogin = async () => {
             </Text>
           </Pressable>
 
+          <Text style={[styles.registerText, { color: theme.text }]}>
+              {t("login.noAccount")}{" "}
+              <Text
+                  style={styles.registerLink}
+                  onPress={() => router.push("/register")}
+                  accessibilityRole="link"
+              >
+                  {t("login.signUp")}
+              </Text>
+          </Text>
+
           <View style={styles.dividerContainer}>
             <View style={styles.divider} />
             <Text style={styles.dividerText}>{t("login.or")}</Text>
@@ -499,16 +526,9 @@ const handleLogin = async () => {
             </Pressable>
           </LinearGradient>
 
-          <Pressable style={styles.createAccountButton}
-          onPress={() => router.push("/register")}>
-            <Text style={styles.createAccountText}>{t("login.createAccount")}</Text>
-          </Pressable>
+            </ScrollView>
 
-        </View>
-
-      </TouchableWithoutFeedback>
-
-    </SafeAreaView>
+        </SafeAreaView>
 
   );
 }

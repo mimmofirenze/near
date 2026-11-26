@@ -18,7 +18,9 @@
     "incorrectCredentials": "Incorrect email or password.",
     "genericError": "Something went wrong. Please try again.",
     "googleFailed": "Google login failed.",
-    "facebookFailed": "Facebook login failed."
+    "facebookFailed": "Facebook login failed.",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up"
   },
   
 "register": {
@@ -29,7 +31,9 @@
   "passwordMismatch": "Passwords do not match",
   "creating": "Creating account...",
   "checkEmail": "Account created. Check your email to confirm your account.",
-  "alreadyUser": "Already a user? Login"
+  "alreadyUser": "Already a user? Login",
+  "haveAccount": "Already have an account?",
+  "logIn": "Log in"
 },
 
 "settings": {

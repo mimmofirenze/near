@@ -18,7 +18,9 @@
     "incorrectCredentials": "Email o password non corretti.",
     "genericError": "Qualcosa è andato storto. Riprova.",
     "googleFailed": "Accesso con Google non riuscito.",
-    "facebookFailed": "Accesso con Facebook non riuscito."
+    "facebookFailed": "Accesso con Facebook non riuscito.",
+    "noAccount": "Non hai un account?",
+    "signUp": "Registrati"
   },
 
 "register": {
@@ -29,7 +31,9 @@
   "passwordMismatch": "Le password non coincidono",
   "creating": "Creazione account...",
   "checkEmail": "Account creato. Controlla la tua email per confermarlo.",
-  "alreadyUser": "Hai già un account? Accedi"
+  "alreadyUser": "Hai già un account? Accedi",
+  "haveAccount": "Hai già un account?",
+  "logIn": "Accedi"
 },
 
 

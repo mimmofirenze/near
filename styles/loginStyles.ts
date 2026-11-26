@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     padding: 24,
   },
@@ -28,39 +28,42 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 21,
     fontFamily: 'alanSemiBold',
+    textAlign: "center",
   },
 
   input: {
-    width: "70%",
-    height: 40,
-    backgroundColor: "#D9D9D9",
-    borderRadius: 11,
-    paddingHorizontal: 18,
-    marginBottom: 20,
-    textAlign: "center",
-    fontSize: 16,
-    color: "#111",
-    fontFamily: 'alanRegular',
+      width: "70%",
+      minHeight: 40,
+      paddingVertical: 8,
+      backgroundColor: "#D9D9D9",
+      borderRadius: 11,
+      paddingHorizontal: 18,
+      marginBottom: 20,
+      textAlign: "center",
+      fontSize: 16,
+      color: "#111",
+      fontFamily: 'alanRegular',
   },
 
   passwordContainer: {
-  width: "70%",
-  height: 40,
-  backgroundColor: "#D9D9D9",
-  borderRadius: 11,
-  marginBottom: 20,
-  flexDirection: "row",
-  alignItems: "center",
-},
+      width: "70%",
+      minHeight: 40,
+      backgroundColor: "#D9D9D9",
+      borderRadius: 11,
+      marginBottom: 20,
+      flexDirection: "row",
+      alignItems: "center",
+  },
 
 passwordInput: {
-  flex: 1,
-  height: "100%",
-  paddingLeft: 45,
-  textAlign: "center",
-  fontSize: 16,
-  fontFamily: "alanRegular",
-  color: "#111",
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 8,
+    paddingLeft: 45,
+    textAlign: "center",
+    fontSize: 16,
+    fontFamily: "alanRegular",
+    color: "#111",
 },
 
 inputError: {
@@ -83,32 +86,36 @@ errorTextBottom: {
 },
 
 eyeButton: {
-  height: "100%",
-  width: 45,
-  alignItems: "center",
-  justifyContent: "center",
+    alignSelf: "stretch",
+    width: 45,
+    alignItems: "center",
+    justifyContent: "center",
 },
 
-  forgotText: {
+forgotText: {
     fontSize: 12,
     color: "#111",
     marginTop: -10,
     marginBottom: 31,
     fontFamily: 'alanRegular',
-  },
+    textAlign: "center",
+},
 
   linkText: {
     color: "#24A9E8",
   },
 
-  continueButton: {
-  width: 137,
-  height: 40,
-  borderRadius: 10,
-  alignItems: "center",
-  justifyContent: "center",
-  marginBottom: 33,
- },
+continueButton: {
+    minWidth: 137,
+    maxWidth: "90%",
+    minHeight: 40,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 33,
+},
 
  continueButtonDisabled: {
   backgroundColor: "#76C6FF",
@@ -119,11 +126,12 @@ continueButtonActive: {
   backgroundColor: "#44b1ff",
  },
 
-  continueButtonText: {
+continueButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontFamily: 'alanRegular',
-  },
+    textAlign: "center",
+},
 
   dividerContainer: {
     width: "90%",
@@ -138,21 +146,24 @@ continueButtonActive: {
     backgroundColor: "#AFAFAF",
   },
 
-  dividerText: {
+dividerText: {
     marginHorizontal: 11,
     color: "#A0A0A0",
     fontSize: 16,
     fontFamily: 'alanRegular',
-  },
+    flexShrink: 1,
+    textAlign: "center",
+},
 
-  socialButton: {
-    height: 40,
+socialButton: {
+    minHeight: 40,
+    paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: "#FFFCF4", // stesso colore dello sfondo
+    backgroundColor: "#FFFCF4",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-  },
+},
 
   socialBorder: {
     width: "80%",
@@ -174,21 +185,16 @@ continueButtonActive: {
     fontFamily: 'alanRegular',
   },
 
-  createAccountButton: {
-    width: "70%",
-    height: 40,
-    borderWidth: 2,
-    borderColor: "#006EFF",
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 30,
-  },
+registerText: {
+    fontSize: 14,
+    fontFamily: "alanRegular",
+    textAlign: "center",
+    marginBottom: 30,
+},
 
-  createAccountText: {
-    color: "#006EFF",
-    fontSize: 16,
-    fontFamily: 'alanRegular',
-  },
+registerLink: {
+    color: "#24A9E8",
+    fontFamily: "alanSemiBold",
+},
 
 }); 

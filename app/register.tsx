@@ -5,8 +5,8 @@ import {
   TextInput,
   View,
   Keyboard, 
-  TouchableWithoutFeedback
-
+  ScrollView,
+  useWindowDimensions
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,6 +37,14 @@ export default function RegisterScreen() {
   const { theme, colorScheme } =
   useAppTheme();
 
+  const { fontScale } = useWindowDimensions();
+
+  const inputWidth = fontScale >= 1.3
+      ? "100%"
+      : "70%";
+
+  const passwordPadding = fontScale >= 1.3 ? 8 : 30;
+
   const { start: startTransition } = useLoginTransition();
 
   const [showPassword, setShowPassword] = useState(false); //roba dell'occhio
@@ -64,7 +72,9 @@ export default function RegisterScreen() {
     password.length > 0 &&
     confirmPassword.length > 0;
 
-  const handleRegister = async () => {
+const handleRegister = async () => {
+    Keyboard.dismiss();
+
     const newFirstNameError = validateFirstName(firstName);
     const newEmailError = validateEmail(email);
     const newPasswordError = validatePassword(password);
@@ -180,9 +190,14 @@ const handleFacebookLogin = async () => {
       ]}
     >
 
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-      <View style={styles.container}>
+    <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
+    >
 
         <Text
           style={[
@@ -196,6 +211,7 @@ const handleFacebookLogin = async () => {
         <TextInput
             style={[
               styles.input,
+              { width: inputWidth },
               firstNameError ? styles.inputError : null,
             ]}
             placeholder={t("register.firstName")}
@@ -219,6 +235,7 @@ const handleFacebookLogin = async () => {
           <TextInput
             style={[
               styles.input,
+              { width: inputWidth },
               emailError ? styles.inputError : null,
             ]}
             placeholder={t("login.email")}
@@ -242,11 +259,15 @@ const handleFacebookLogin = async () => {
           <View
             style={[
               styles.passwordContainer,
+              { width: inputWidth },
               passwordError ? styles.inputError : null,
             ]}
           >
             <TextInput
-              style={styles.passwordInput}
+              style={[
+                  styles.passwordInput,
+                  { paddingLeft: passwordPadding },
+              ]}
               placeholder={t("login.password")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={!showPassword}
@@ -284,11 +305,15 @@ const handleFacebookLogin = async () => {
           <View
             style={[
               styles.passwordContainer,
+              { width: inputWidth },
               confirmPasswordError ? styles.inputError : null,
             ]}
           >
             <TextInput
-              style={styles.passwordInput}
+              style={[
+                  styles.passwordInput,
+                  { paddingLeft: passwordPadding },
+              ]}
               placeholder={t("register.confirmPassword")}
               placeholderTextColor="#8F8F8F"
               secureTextEntry={!showConfirmPassword}
@@ -344,6 +369,17 @@ const handleFacebookLogin = async () => {
                 {registerError}
               </Text>
           ) : null}
+
+          <Text style={[styles.loginText, { color: theme.text }]}>
+            {t("register.haveAccount")}{" "}
+            <Text
+                style={styles.loginLink}
+                onPress={() => router.back()}
+                accessibilityRole="link"
+            >
+                {t("register.logIn")}
+            </Text>
+        </Text>
 
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
@@ -409,19 +445,8 @@ const handleFacebookLogin = async () => {
           </Pressable>
         </LinearGradient>
 
-        <Pressable
-          style={styles.loginButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.loginButtonText}>
-            {t("register.alreadyUser")}
-          </Text>
-        </Pressable>
+      </ScrollView>
 
-      </View>
-
-      </TouchableWithoutFeedback>
-
-    </SafeAreaView>
+  </SafeAreaView>
   );
 }
