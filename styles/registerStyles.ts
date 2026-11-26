@@ -9,6 +9,7 @@ export const styles = StyleSheet.create({
   container: {
       flexGrow: 1,
       alignItems: "center",
+      justifyContent: "center",
       padding: 24,
   },
 
@@ -102,7 +103,7 @@ continueButton: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: 18,
-    marginBottom: 15,
+    marginBottom: 33,
 },
 
 continueButtonText: {
